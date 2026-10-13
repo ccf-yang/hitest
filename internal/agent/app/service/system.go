@@ -1,0 +1,31 @@
+package service
+
+import (
+	"hitest/internal/agent/app/dto/response"
+	"os/exec"
+)
+
+type SystemService struct{}
+
+type ISystemService interface {
+	IsComponentExist(name string) response.ComponentInfo
+	ListQuickCommands() ([]QuickCommand, error)
+	RunQuickCommand(name string) (string, error)
+}
+
+func NewISystemService() ISystemService {
+	return &SystemService{}
+}
+
+func (s *SystemService) IsComponentExist(name string) response.ComponentInfo {
+	info := response.ComponentInfo{}
+	path, err := exec.LookPath(name)
+	if err != nil {
+		info.Exists = false
+		info.Error = err.Error()
+		return info
+	}
+	info.Exists = true
+	info.Path = path
+	return info
+}

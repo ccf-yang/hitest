@@ -1,0 +1,118 @@
+# hitest 统一构建：一个 workflow 同时产出
+#   1) Go 服务端二进制  build/hitest（linux/amd64）
+#   2) 未签名 iOS IPA    build/hitest-unsigned.ipa
+#
+# 触发：手动（Actions 页面 Run workflow）或 push 到 main / 打 tag。
+# 产物不上传 Actions artifact（额度满了）；打 tag 时仍发 GitHub Release。
+name: Build hitest
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: macos-15
+    timeout-minutes: 90
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # ---------- Go 服务端 ----------
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      - name: Build Go binary (linux/amd64)
+        run: |
+          CGO_ENABLED=0 GOOS=linux GOARCH=amd64 \
+            go build -trimpath -ldflags '-s -w' -o build/hitest ./cmd/hitest
+          ls -lh build/hitest
+
+      - name: Compress binary (upx, optional)
+        run: brew install upx >/dev/null 2>&1 && upx -q build/hitest || true
+
+      # ---------- iOS 客户端 ----------
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Flutter version
+        run: flutter --version
+
+      - name: Use CocoaPods (disable SwiftPM)
+        run: flutter config --no-enable-swift-package-manager || true
+
+      - name: Flutter pub get / gen-l10n / launcher icons
+        working-directory: client
+        run: |
+          flutter pub get
+          flutter gen-l10n
+          # 构建时代码生成图标（仓库不含 PNG）
+          node ../scripts/gen_icon.js
+          dart run flutter_launcher_icons
+
+      - name: Analyze Dart (errors only)
+        working-directory: client
+        run: flutter analyze --no-fatal-infos --no-fatal-warnings
+
+      - name: Prepare Flutter iOS config
+        working-directory: client
+        run: flutter build ios --release --config-only --no-codesign
+
+      - name: CocoaPods install
+        working-directory: client/ios
+        run: pod install
+
+      - name: Xcode build (unsigned)
+        working-directory: client
+        run: |
+          set -e
+          xcodebuild \
+            -workspace ios/Runner.xcworkspace \
+            -scheme Runner \
+            -configuration Release \
+            -sdk iphoneos \
+            -destination 'generic/platform=iOS' \
+            -derivedDataPath build/ios \
+            CODE_SIGN_STYLE=Manual \
+            DEVELOPMENT_TEAM="" \
+            PROVISIONING_PROFILE_SPECIFIER="" \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGNING_ALLOWED=NO \
+            build
+
+      - name: Package unsigned IPA
+        working-directory: client
+        run: |
+          set -e
+          APP_PATH=$(find build/ios -type d -name Runner.app | head -1)
+          test -n "$APP_PATH"
+          rm -rf "$GITHUB_WORKSPACE/build/ipa" && mkdir -p "$GITHUB_WORKSPACE/build/ipa/Payload"
+          cp -R "$APP_PATH" "$GITHUB_WORKSPACE/build/ipa/Payload/"
+          (cd "$GITHUB_WORKSPACE/build/ipa" && zip -qr "$GITHUB_WORKSPACE/build/hitest-unsigned.ipa" Payload)
+          ls -lh "$GITHUB_WORKSPACE/build/hitest-unsigned.ipa"
+
+      # ---------- 打 tag 时发 Release ----------
+      - name: Publish release (tags only)
+        if: startsWith(github.ref, 'refs/tags/')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -e
+          TAG="${GITHUB_REF_NAME}"
+          gh release create "$TAG" \
+            build/hitest build/hitest-unsigned.ipa \
+            --title "hitest ${TAG}" \
+            --notes "Auto build (commit ${{ github.sha }} / run #${{ github.run_number }})" \
+            --latest || \
+          gh release upload "$TAG" build/hitest build/hitest-unsigned.ipa --clobber

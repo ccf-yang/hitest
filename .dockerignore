@@ -1,0 +1,8 @@
+client/
+build/
+.git/
+.github/
+*.md
+scripts/
+Dockerfile
+.dockerignore

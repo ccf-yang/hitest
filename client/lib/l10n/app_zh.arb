@@ -1,0 +1,131 @@
+{
+  "@@locale": "zh",
+  "appName": "hitest Client",
+  "commonLoading": "加载中...",
+  "commonRetry": "重试",
+  "commonCancel": "取消",
+  "commonConfirm": "确认",
+  "commonMore": "更多",
+  "commonSave": "保存",
+  "commonDelete": "删除",
+  "commonRefresh": "刷新",
+  "commonComingSoon": "即将支持",
+  "commonEmpty": "暂无数据",
+  "commonLoadFailedTitle": "加载失败",
+  "monitorNetworkLabel": "网络",
+  "monitorMetricCurrent": "当前",
+  "monitorMetricMin": "最小",
+  "monitorMetricAvg": "平均",
+  "monitorMetricMax": "最大",
+  "navServer": "服务器",
+  "noServerSelectedTitle": "{module} 需要先选择服务器",
+  "@noServerSelectedTitle": {
+    "placeholders": {
+      "module": {
+        "type": "String"
+      }
+    }
+  },
+  "noServerSelectedDescription": "请先选择当前服务器，再进入该模块。",
+  "serverPageTitle": "服务器",
+  "serverSearchHint": "请输入服务器名称或 IP",
+  "serverAdd": "添加",
+  "serverListEmptyTitle": "暂无服务器",
+  "serverListEmptyDesc": "先添加一个 hitest 服务器开始使用。",
+  "serverCurrent": "当前",
+  "serverIpLabel": "IP",
+  "serverCpuLabel": "CPU",
+  "serverMemoryLabel": "内存",
+  "serverLoadLabel": "负载",
+  "serverDiskLabel": "磁盘",
+  "serverMetricsUnavailable": "监控数据暂不可用",
+  "serverOpenDetail": "查看详情",
+  "serverDetailTitle": "服务器详情",
+  "serverModuleMonitoring": "监控",
+  "serverActionRefresh": "刷新",
+  "serverActionSwitch": "切换服务器",
+  "serverFormTitle": "添加服务器",
+  "serverFormName": "服务器名称",
+  "serverFormNameHint": "例如：生产环境",
+  "serverFormUrl": "服务器地址",
+  "serverFormUrlHint": "例如：https://panel.example.com",
+  "serverFormApiKey": "API 密钥",
+  "serverFormApiKeyHint": "请输入 API 密钥",
+  "serverFormSaveConnect": "保存并继续",
+  "serverFormTest": "测试连接",
+  "serverFormRequired": "该字段不能为空",
+  "serverFormSaveSuccess": "服务器已保存",
+  "serverFormSaveFailed": "保存服务器失败：{error}",
+  "@serverFormSaveFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "serverDeleteConfirmTitle": "删除服务器",
+  "serverDeleteConfirmMessage": "确定删除服务器 {name} 吗？",
+  "@serverDeleteConfirmMessage": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "serverDeleteSuccess": "已删除服务器 {name}",
+  "@serverDeleteSuccess": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "serverDeleteFailed": "删除服务器失败：{error}",
+  "@serverDeleteFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "serverTestSuccess": "连接成功",
+  "serverTestFailed": "连接失败",
+  "serverTestTesting": "正在测试连接...",
+  "serverMetricsAvailable": "监控数据已加载",
+  "serverTokenValidity": "接口密钥有效期",
+  "serverTokenValidityHint": "设置为0时不校验时间戳",
+  "serverFormAllowInsecureTls": "忽略 TLS 证书校验",
+  "serverFormAllowInsecureTlsHint": "仅在可信的自签名或内网环境中启用。",
+  "serverFormMinutes": "分钟",
+  "settingsPageTitle": "设置",
+  "settingsGeneral": "通用",
+  "settingsAppSectionTitle": "应用",
+  "settingsTheme": "主题",
+  "settingsServerManagement": "服务器管理",
+  "settingsServerManagementSubtitle": "管理多台已连接服务器；服务端系统设置仅在对应服务器详情页中提供。",
+  "themeSystem": "跟随系统",
+  "themeLight": "浅色",
+  "themeDark": "深色",
+  "authLogin": "登录",
+  "notFoundTitle": "页面不存在",
+  "notFoundDesc": "请求的页面不存在或已迁移。",
+  "monitorSettings": "监控设置",
+  "monitorInterval": "监控间隔",
+  "monitorIntervalUnit": "秒",
+  "monitorRetentionUnit": "天",
+  "monitorCleanData": "清理监控数据",
+  "monitorCleanConfirm": "确定要清理所有监控数据吗？此操作无法撤销。",
+  "monitorCleanSuccess": "监控数据清理成功",
+  "monitorCleanFailed": "清理监控数据失败",
+  "monitorSettingsSaved": "设置保存成功",
+  "monitorSettingsFailed": "保存设置失败",
+  "monitorSettingsTitle": "监控设置",
+  "monitorSettingsInterval": "监控间隔",
+  "monitorSettingsStoreDays": "数据保留天数",
+  "monitorSettingsEnable": "启用监控",
+  "commonError": "发生错误",
+  "env": "环境变量",
+  "quickCommandsTitle": "快捷命令",
+  "quickCommandsEmptyDesc": "暂无预置命令。请在服务端 hitest/conf/commands.yaml 中按 name/command 配置。",
+  "quickCommandsNoOutput": "（无输出）"
+}

@@ -1,0 +1,66 @@
+# Binaries for programs and plugins
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+build/
+
+# Mac
+.DS_Store
+
+# VS Code
+.vscode
+*.project
+*.factorypath
+__debug*
+
+# IntelliJ IDEA
+.idea/*
+!.idea/icon.png
+*.iws
+*.iml
+*.ipr
+
+# Test binary / coverage
+*.test
+*.out
+
+# Dependency directories
+/pkg/
+__debug_bin
+.fileList.txt
+hitest.code-workspace
+
+# xpack / enterprise（已裁剪，保留忽略以防回灌）
+internal/agent/xpack
+internal/core/xpack
+internal/agent/utils/xpack/xpack.go
+internal/core/utils/xpack/xpack.go
+
+# 运行时 / 安装产物
+.history/
+dist/
+hitestctl
+hitest.service
+install.sh
+quick_start.sh
+
+# Flutter 客户端（client/ 另有自己的 .gitignore）
+client/build/
+client/.dart_tool/
+client/ios/Pods/
+client/ios/.symlinks/
+client/ios/Flutter/Generated.xcconfig
+client/ios/Flutter/flutter_export_environment.sh
+*.ipa
+
+# 其他
+.opencode
+openspec
+CLAUDE.md
+AGENTS.md
+opencode.json
+superpowers
+.worktrees/
+.codex/
