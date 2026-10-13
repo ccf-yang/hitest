@@ -6,6 +6,7 @@ import 'package:hitest/features/server/server_detail_page.dart';
 import 'package:hitest/features/server/server_form_page.dart';
 import 'package:hitest/features/server/server_list_page.dart';
 import 'package:hitest/features/server/server_models.dart';
+import 'package:hitest/features/shell/models/client_module.dart';
 import 'package:hitest/features/shell/shell_navigation.dart';
 import 'package:hitest/ui/routing/ui_route_host.dart';
 import 'package:hitest/ui/routing/route_registry.dart';
