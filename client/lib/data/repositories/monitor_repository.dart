@@ -391,7 +391,7 @@ class MonitorRepository {
       appLogger.dWithPackage(
           _monitorRepoPackage, 'Calling monitor metrics API');
       final response = await client.post(
-        '/api/v2/hosts/monitor/search',
+        '/api/v1/monitor/search',
         data: {
           'param': 'all',
           'startTime': startTime.toUtc().toIso8601String(),
@@ -431,7 +431,7 @@ class MonitorRepository {
 
       // 使用 'all' 参数获取所有数据，然后从中提取需要的字段
       final response = await client.post(
-        '/api/v2/hosts/monitor/search',
+        '/api/v1/monitor/search',
         data: {
           'param': 'all',
           if (io != null) 'io': io,
@@ -467,7 +467,7 @@ class MonitorRepository {
 
       // 使用 'all' 参数获取所有数据
       final response = await client.post(
-        '/api/v2/hosts/monitor/search',
+        '/api/v1/monitor/search',
         data: {
           'param': 'all',
           if (io != null) 'io': io,
@@ -501,7 +501,7 @@ class MonitorRepository {
   /// 获取监控设置
   Future<MonitorSetting?> getSetting(dynamic client) async {
     try {
-      final response = await client.get('/api/v2/hosts/monitor/setting');
+      final response = await client.get('/api/v1/monitor/setting');
       if (response.data != null && response.data is Map) {
         final body = response.data as Map<String, dynamic>;
         final payload = body['data'];
@@ -554,7 +554,7 @@ class MonitorRepository {
 
       for (final update in updates) {
         await client.post(
-          '/api/v2/hosts/monitor/setting/update',
+          '/api/v1/monitor/setting/update',
           data: update,
         );
       }
@@ -573,7 +573,7 @@ class MonitorRepository {
   /// 清理监控数据
   Future<bool> cleanData(dynamic client) async {
     try {
-      await client.post('/api/v2/hosts/monitor/clean');
+      await client.post('/api/v1/monitor/clean');
       return true;
     } catch (e, stack) {
       appLogger.eWithPackage(
@@ -589,7 +589,7 @@ class MonitorRepository {
   /// 获取网络接口列表
   Future<List<String>> getNetworkOptions(dynamic client) async {
     try {
-      final response = await client.get('/api/v2/hosts/monitor/netoptions');
+      final response = await client.get('/api/v1/monitor/netoptions');
       if (response.data != null && response.data is Map) {
         final body = response.data as Map<String, dynamic>;
         final dataList = body['data'] as List?;
@@ -612,7 +612,7 @@ class MonitorRepository {
   /// 获取IO设备列表
   Future<List<String>> getIOOptions(dynamic client) async {
     try {
-      final response = await client.get('/api/v2/hosts/monitor/iooptions');
+      final response = await client.get('/api/v1/monitor/iooptions');
       if (response.data != null && response.data is Map) {
         final body = response.data as Map<String, dynamic>;
         final dataList = body['data'] as List?;

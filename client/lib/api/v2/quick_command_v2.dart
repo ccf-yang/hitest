@@ -30,7 +30,9 @@ class QuickCommandV2Api {
       ApiConstants.buildApiPath('/commands/preset/run'),
       data: {'name': name},
     );
-    final output = ApiResponseParser.extractMapData(response)['data'];
+    // 新服务端返回 {output: "..."}（信封由 ApiResponseParser 解开）
+    final payload = ApiResponseParser.asMap(response.data, fallbackToRootMap: true);
+    final output = payload['output'];
     return Response(
       data: output is String ? output : '',
       statusCode: response.statusCode,

@@ -32,6 +32,9 @@ class AuthInterceptor extends Interceptor {
       'Content-Type': 'application/json',
       'Accept': 'application/json',
       'User-Agent': ApiConstants.userAgent,
+      // 请求 legacy {code,message,data} 响应信封:
+      // 客户端各仓库按 data['data'] 解析, 由服务端 envelope 中间件包裹
+      'X-Hitest-Envelope': '1',
     });
 
     _logger.d(

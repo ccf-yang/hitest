@@ -57,7 +57,7 @@ class ServerConnectionService {
       final token = digest.toString();
 
       final response = await dio.get(
-        '/api/v2/dashboard/base/os',
+        '/api/v1/monitor/base/os',
         options: Options(headers: {
           'hitest-Token': token,
           'hitest-Timestamp': timestamp,

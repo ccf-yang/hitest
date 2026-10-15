@@ -12,14 +12,14 @@ class DashboardV2Api {
 
   /// 获取仪表盘基础信息（含 currentInfo 指标）
   ///
-  /// GET /dashboard/base/:ioOption/:netOption
+  /// GET /monitor/base/:ioOption/:netOption
   Future<Response<Map<String, dynamic>>> getDashboardBase({
     String? ioOption,
     String? netOption,
   }) async {
     final response = await _client.get<Map<String, dynamic>>(
       ApiConstants.buildApiPath(
-          '/dashboard/base/${ioOption ?? 'default'}/${netOption ?? 'default'}'),
+          '/monitor/base/${ioOption ?? 'all'}/${netOption ?? 'all'}'),
     );
     return Response(
       data: ApiResponseParser.extractMapData(response),

@@ -1,0 +1,299 @@
+package monitor
+
+import (
+	"cmp"
+	"encoding/json"
+	"fmt"
+	network "net"
+	"log"
+	"os"
+
+
+
+	"time"
+
+	"hitest/internal/modules/dto"
+	
+	"hitest/internal/pkg/cmdx"
+	
+	"hitest/internal/pkg/diskinfo"
+	"hitest/internal/pkg/psutil"
+	
+
+	"github.com/shirou/gopsutil/v4/disk"
+	"github.com/shirou/gopsutil/v4/load"
+	"github.com/shirou/gopsutil/v4/mem"
+	"github.com/shirou/gopsutil/v4/net"
+)
+
+type DashboardService struct{}
+
+type IDashboardService interface {
+	LoadOsInfo() (*dto.OsInfo, error)
+	LoadBaseInfo(ioOption string, netOption string) (*dto.DashboardBase, error)
+	LoadCurrentInfoForNode() *dto.NodeCurrent
+	LoadCurrentInfo(ioOption string, netOption string) *dto.DashboardCurrent
+	LoadTopCPU() []dto.Process
+	LoadTopMem() []dto.Process
+
+	Restart(operation string) error
+}
+
+func NewIDashboardService() IDashboardService {
+	return &DashboardService{}
+}
+
+func (u *DashboardService) Restart(operation string) error {
+	switch operation {
+	case "system":
+		{
+			go func() {
+				cmdMgr := cmd.NewCommandMgr()
+				err := cmdMgr.RunWithOptionalSudo("reboot")
+				if err != nil {
+					log.Printf("handle reboot failed, %v", err)
+				}
+			}()
+			return nil
+		}
+	default:
+		return fmt.Errorf("handle restart operation %s failed, err: nonsupport such operation", operation)
+	}
+}
+
+func (u *DashboardService) LoadOsInfo() (*dto.OsInfo, error) {
+	var baseInfo dto.OsInfo
+	hostInfo, err := psutil.HOST.GetHostInfo(false)
+	if err != nil {
+		return nil, err
+	}
+	baseInfo.OS = hostInfo.OS
+	baseInfo.Platform = hostInfo.Platform
+	baseInfo.PlatformFamily = hostInfo.PlatformFamily
+	baseInfo.KernelArch = hostInfo.KernelArch
+	baseInfo.KernelVersion = hostInfo.KernelVersion
+	baseInfo.PrettyDistro = psutil.HOST.GetDistro()
+
+	diskInfo, err := psutil.DISK.GetUsage("/", false)
+	if err == nil {
+		baseInfo.DiskSize = int64(diskInfo.Free)
+	}
+
+	if baseInfo.KernelArch == "armv7l" {
+		baseInfo.KernelArch = "armv7"
+	}
+	if baseInfo.KernelArch == "x86_64" {
+		baseInfo.KernelArch = "amd64"
+	}
+	return &baseInfo, nil
+}
+
+func (u *DashboardService) LoadCurrentInfoForNode() *dto.NodeCurrent {
+	var currentInfo dto.NodeCurrent
+
+	currentInfo.CPUTotal, _ = psutil.CPUInfo.GetLogicalCores(false)
+
+	cpuUsedPercent, perCore, cpuDetailedPercent := psutil.CPU.GetCPUUsage()
+	if len(perCore) == 0 {
+		currentInfo.CPUTotal = psutil.CPU.NumCPU()
+	} else {
+		currentInfo.CPUTotal = len(perCore)
+	}
+	currentInfo.CPUUsedPercent = cpuUsedPercent
+	currentInfo.CPUUsed = cpuUsedPercent * 0.01 * float64(currentInfo.CPUTotal)
+	currentInfo.CPUDetailedPercent = cpuDetailedPercent
+
+	loadInfo, _ := load.Avg()
+	currentInfo.Load1 = loadInfo.Load1
+	currentInfo.Load5 = loadInfo.Load5
+	currentInfo.Load15 = loadInfo.Load15
+	currentInfo.LoadUsagePercent = loadInfo.Load1 / (float64(currentInfo.CPUTotal*2) * 0.75) * 100
+
+	memoryInfo, _ := mem.VirtualMemory()
+	currentInfo.MemoryTotal = memoryInfo.Total
+	currentInfo.MemoryAvailable = memoryInfo.Available
+	currentInfo.MemoryUsed = memoryInfo.Used
+	currentInfo.MemoryUsedPercent = memoryInfo.UsedPercent
+
+	swapInfo, _ := mem.SwapMemory()
+	currentInfo.SwapMemoryTotal = swapInfo.Total
+	currentInfo.SwapMemoryAvailable = swapInfo.Free
+	currentInfo.SwapMemoryUsed = swapInfo.Used
+	currentInfo.SwapMemoryUsedPercent = swapInfo.UsedPercent
+
+	return &currentInfo
+}
+
+func (u *DashboardService) LoadBaseInfo(ioOption string, netOption string) (*dto.DashboardBase, error) {
+	var baseInfo dto.DashboardBase
+	hostInfo, err := psutil.HOST.GetHostInfo(true)
+	if err != nil {
+		return nil, err
+	}
+	ss, _ := json.Marshal(hostInfo)
+	baseInfo = dto.DashboardBase{
+		Hostname:             hostInfo.Hostname,
+		OS:                   hostInfo.OS,
+		Platform:             hostInfo.Platform,
+		PlatformFamily:       hostInfo.PlatformFamily,
+		PlatformVersion:      hostInfo.PlatformVersion,
+		PrettyDistro:         psutil.HOST.GetDistro(),
+		KernelArch:           hostInfo.KernelArch,
+		KernelVersion:        hostInfo.KernelVersion,
+		VirtualizationSystem: string(ss),
+		IpV4Addr:             loadOutboundIP(),
+		SystemProxy:          "noProxy",
+	}
+
+	if proxy := cmp.Or(os.Getenv("http_proxy"), os.Getenv("HTTP_PROXY")); proxy != "" {
+		baseInfo.SystemProxy = proxy
+	}
+
+	cpuInfo, err := psutil.CPUInfo.GetCPUInfo(false)
+	if err == nil && len(cpuInfo) > 0 {
+		baseInfo.CPUModelName = cpuInfo[0].ModelName
+	}
+
+	baseInfo.CPUCores, _ = psutil.CPUInfo.GetPhysicalCores(false)
+	baseInfo.CPULogicalCores, _ = psutil.CPUInfo.GetLogicalCores(false)
+	baseInfo.CPUMhz = cpuInfo[0].Mhz
+
+	baseInfo.CurrentInfo = *u.LoadCurrentInfo(ioOption, netOption)
+	return &baseInfo, nil
+}
+
+func (u *DashboardService) LoadCurrentInfo(ioOption string, netOption string) *dto.DashboardCurrent {
+	var currentInfo dto.DashboardCurrent
+	shotTime := time.Now()
+	hostInfo, err := psutil.HOST.GetHostInfo(false)
+	if err != nil {
+		log.Printf("load host info failed: %v", err)
+		currentInfo.ShotTime = shotTime
+		return &currentInfo
+	}
+
+	uptime := hostInfo.Uptime
+	var bootTime uint64
+	if now := shotTime.Unix(); now > 0 {
+		nowUnix := uint64(now)
+		if hostInfo.BootTime > 0 && hostInfo.BootTime <= nowUnix {
+			bootTime = hostInfo.BootTime
+			uptime = nowUnix - bootTime
+		} else if uptime <= nowUnix {
+			bootTime = nowUnix - uptime
+		}
+	}
+	currentInfo.Uptime = uptime
+	currentInfo.RunningTime = loadRunningTime(uptime)
+	if bootTime > 0 {
+		currentInfo.TimeSinceUptime = time.Unix(int64(bootTime), 0).Format("2006-01-02 15:04:05")
+	}
+	currentInfo.Procs = hostInfo.Procs
+	currentInfo.CPUTotal, _ = psutil.CPUInfo.GetLogicalCores(false)
+
+	cpuUsedPercent, perCore, cpuDetailedPercent := psutil.CPU.GetCPUUsage()
+	if len(perCore) == 0 {
+		currentInfo.CPUTotal = psutil.CPU.NumCPU()
+	} else {
+		currentInfo.CPUTotal = len(perCore)
+	}
+	currentInfo.CPUPercent = perCore
+	currentInfo.CPUUsedPercent = cpuUsedPercent
+	currentInfo.CPUUsed = cpuUsedPercent * 0.01 * float64(currentInfo.CPUTotal)
+	currentInfo.CPUDetailedPercent = cpuDetailedPercent
+
+	loadInfo, _ := load.Avg()
+	currentInfo.Load1 = loadInfo.Load1
+	currentInfo.Load5 = loadInfo.Load5
+	currentInfo.Load15 = loadInfo.Load15
+	currentInfo.LoadUsagePercent = loadInfo.Load1 / (float64(currentInfo.CPUTotal*2) * 0.75) * 100
+
+	memoryInfo, _ := mem.VirtualMemory()
+	currentInfo.MemoryTotal = memoryInfo.Total
+	currentInfo.MemoryUsed = memoryInfo.Used
+	currentInfo.MemoryFree = memoryInfo.Free
+	currentInfo.MemoryCache = memoryInfo.Cached + memoryInfo.Buffers
+	currentInfo.MemoryShard = memoryInfo.Shared
+	currentInfo.MemoryAvailable = memoryInfo.Available
+	currentInfo.MemoryUsedPercent = memoryInfo.UsedPercent
+
+	swapInfo, _ := mem.SwapMemory()
+	currentInfo.SwapMemoryTotal = swapInfo.Total
+	currentInfo.SwapMemoryAvailable = swapInfo.Free
+	currentInfo.SwapMemoryUsed = swapInfo.Used
+	currentInfo.SwapMemoryUsedPercent = swapInfo.UsedPercent
+
+	currentInfo.DiskData = diskinfo.DiskInfo(false)
+
+	if ioOption == "all" {
+		diskInfo, _ := disk.IOCounters()
+		state := sumDiskIOCounters(diskInfo)
+		currentInfo.IOReadBytes = state.ReadBytes
+		currentInfo.IOWriteBytes = state.WriteBytes
+		currentInfo.IOCount = state.ReadCount + state.WriteCount
+		currentInfo.IOReadTime = state.ReadTime
+		currentInfo.IOWriteTime = state.WriteTime
+	} else {
+		diskInfo, _ := disk.IOCounters(ioOption)
+		for _, state := range diskInfo {
+			currentInfo.IOReadBytes += state.ReadBytes
+			currentInfo.IOWriteBytes += state.WriteBytes
+			currentInfo.IOCount += (state.ReadCount + state.WriteCount)
+			currentInfo.IOReadTime += state.ReadTime
+			currentInfo.IOWriteTime += state.WriteTime
+		}
+	}
+
+	if netOption == "all" {
+		netInfo, _ := net.IOCounters(false)
+		if len(netInfo) != 0 {
+			currentInfo.NetBytesSent = netInfo[0].BytesSent
+			currentInfo.NetBytesRecv = netInfo[0].BytesRecv
+		}
+	} else {
+		netInfo, _ := net.IOCounters(true)
+		for _, state := range netInfo {
+			if state.Name == netOption {
+				currentInfo.NetBytesSent = state.BytesSent
+				currentInfo.NetBytesRecv = state.BytesRecv
+				break
+			}
+		}
+	}
+
+	currentInfo.ShotTime = shotTime
+	return &currentInfo
+}
+
+func loadRunningTime(uptime uint64) dto.RunningTime {
+	return dto.RunningTime{
+		Days:    uptime / 86400,
+		Hours:   (uptime % 86400) / 3600,
+		Minutes: (uptime % 3600) / 60,
+		Seconds: uptime % 60,
+	}
+}
+
+func (u *DashboardService) LoadTopCPU() []dto.Process {
+	return loadTopCPU()
+}
+
+func (u *DashboardService) LoadTopMem() []dto.Process {
+	return loadTopMem()
+}
+
+
+
+
+
+func loadOutboundIP() string {
+	conn, err := network.Dial("udp", "8.8.8.8:80")
+
+	if err != nil {
+		return "IPNotFound"
+	}
+	defer conn.Close()
+
+	localAddr := conn.LocalAddr().(*network.UDPAddr)
+	return localAddr.IP.String()
+}

@@ -25,7 +25,7 @@ class MonitoringService extends BaseComponent {
       // 优先使用dashboard API获取当前指标，因为它更可靠
       try {
         final response = await client.get(
-          '/api/v2/dashboard/current/default/default',
+          '/api/v1/monitor/current/all/all',
         );
 
         if (response.data != null && response.data is Map) {
@@ -200,7 +200,7 @@ class MonitoringService extends BaseComponent {
       MonitorMetricsSnapshot? currentMetrics;
       try {
         final response = await client.get(
-          '/api/v2/dashboard/current/default/default',
+          '/api/v1/monitor/current/all/all',
         );
 
         if (response.data != null && response.data is Map) {
