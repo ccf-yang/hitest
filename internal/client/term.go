@@ -4,9 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
-	"os/signal"
-	"syscall"
-	"unsafe"
 
 	"github.com/gorilla/websocket"
 	"golang.org/x/term"
@@ -48,19 +45,15 @@ func (c *Config) Con(machine string, cmd string) error {
 		return err
 	}
 
-	// SIGWINCH → resize 帧
-	winch := make(chan os.Signal, 1)
-	signal.Notify(winch, syscall.SIGWINCH)
-	go func() {
-		for range winch {
-			c2, r2 := winSize(fd)
-			buf := make([]byte, 5)
-			buf[0] = 1 // FrameResize
-			buf[1], buf[2] = byte(c2>>8), byte(c2)
-			buf[3], buf[4] = byte(r2>>8), byte(r2)
-			ws.WriteMessage(websocket.BinaryMessage, buf)
-		}
-	}()
+	// 窗口尺寸变化 → resize 帧（unix 走 SIGWINCH, windows 轮询控制台）
+	stopWatch := watchResize(fd, func(cols, rows uint16) {
+		buf := make([]byte, 5)
+		buf[0] = 1 // FrameResize
+		buf[1], buf[2] = byte(cols>>8), byte(cols)
+		buf[3], buf[4] = byte(rows>>8), byte(rows)
+		ws.WriteMessage(websocket.BinaryMessage, buf)
+	})
+	defer stopWatch()
 
 	// WS → stdout
 	done := make(chan struct{})
@@ -97,15 +90,6 @@ func (c *Config) Con(machine string, cmd string) error {
 	ws.Close()
 	<-done
 	return nil
-}
-
-func winSize(fd int) (cols, rows uint16) {
-	var sz struct {
-		Row, Col, X, Y uint16
-	}
-	_, _, _ = syscall.Syscall(syscall.SYS_IOCTL, uintptr(fd),
-		uintptr(syscall.TIOCGWINSZ), uintptr(unsafe.Pointer(&sz)))
-	return sz.Col, sz.Row
 }
 
 func httpToWS(u string) string {

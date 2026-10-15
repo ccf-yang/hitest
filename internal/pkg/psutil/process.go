@@ -11,7 +11,6 @@ import (
 	"time"
 
 	"github.com/shirou/gopsutil/v4/process"
-	"github.com/tklauser/go-sysconf"
 )
 
 const defaultClockTicks = 100
@@ -33,8 +32,8 @@ func NewProcessCreateTimeResolver() *ProcessCreateTimeResolver {
 		procRoot:   procRoot,
 		clockTicks: defaultClockTicks,
 	}
-	if clockTicks, err := sysconf.Sysconf(sysconf.SC_CLK_TCK); err == nil && clockTicks > 0 {
-		resolver.clockTicks = uint64(clockTicks)
+	if ticks, ok := clockTicks(); ok && ticks > 0 {
+		resolver.clockTicks = ticks
 	}
 	if bootTime, err := readBootTime(filepath.Join(procRoot, "stat")); err == nil {
 		resolver.bootTime = bootTime

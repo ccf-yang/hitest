@@ -200,11 +200,9 @@ func (c *CommandHelper) buildPipeCommands(ctx context.Context, commands []PipeCo
 		if item.Dir != "" {
 			cmdItem.Dir = item.Dir
 		}
-		cmdItem.SysProcAttr = &syscall.SysProcAttr{
-			Setpgid: true,
-		}
+		cmdItem.SysProcAttr = sysProcAttr()
 		cmdItem.Cancel = func() error {
-			_ = syscall.Kill(-cmdItem.Process.Pid, syscall.SIGKILL)
+			killTree(cmdItem)
 			return cmdItem.Process.Kill()
 		}
 		cmds = append(cmds, cmdItem)
@@ -288,12 +286,10 @@ func (c *CommandHelper) run(name string, arg ...string) (string, error) {
 	} else {
 		cmd = exec.Command(name, arg...)
 	}
-	cmd.SysProcAttr = &syscall.SysProcAttr{
-		Setpgid: true,
-	}
+	cmd.SysProcAttr = sysProcAttr()
 	if newContext != nil {
 		cmd.Cancel = func() error {
-			_ = syscall.Kill(-cmd.Process.Pid, syscall.SIGKILL)
+			killTree(cmd)
 			return cmd.Process.Kill()
 		}
 	}
@@ -362,8 +358,7 @@ func (c *CommandHelper) run(name string, arg ...string) (string, error) {
 		return stdout.String(), nil
 	case <-contextDone(newContext):
 		if cmd.Process != nil && cmd.Process.Pid > 0 {
-			killErr := syscall.Kill(-cmd.Process.Pid, syscall.SIGKILL)
-			_ = killErr
+			killTree(cmd)
 		}
 		var err error
 		switch newContext.Err() {
@@ -398,7 +393,7 @@ func killStarted(cmds []*exec.Cmd) {
 func killProcessGroups(cmds []*exec.Cmd) {
 	for _, item := range cmds {
 		if item.Process != nil {
-			_ = syscall.Kill(-item.Process.Pid, syscall.SIGKILL)
+			killTree(item)
 		}
 	}
 }
