@@ -4,6 +4,7 @@ import '../services/logger/logger_service.dart';
 import '../config/api_constants.dart';
 import 'network_exceptions.dart';
 import 'interceptors/auth_interceptor.dart';
+import 'interceptors/machine_prefix_interceptor.dart';
 import 'interceptors/logging_interceptor.dart';
 import 'interceptors/retry_interceptor.dart';
 import 'interceptors/business_response_interceptor.dart';
@@ -43,6 +44,8 @@ class DioClient {
 
   /// 添加拦截器
   void _addInterceptors() {
+    // 机器前缀最先: 后续鉴权/日志/重试都按最终 URL 处理
+    _dio.interceptors.add(MachinePrefixInterceptor());
     _dio.interceptors.add(_authInterceptor);
     _dio.interceptors.add(BusinessResponseInterceptor());
     _dio.interceptors.add(LoggingInterceptor(ApiConstants.isDebugMode));

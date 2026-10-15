@@ -2,6 +2,7 @@ import 'dart:io';
 
 import '../config/api_config.dart';
 import '../config/api_constants.dart';
+import 'machine_path.dart';
 import 'hitest_auth_headers.dart';
 
 class OnePanelWebSocketConnector {
@@ -56,11 +57,13 @@ class OnePanelWebSocketConnector {
     final normalizedBasePath = baseUri.path.endsWith('/')
         ? baseUri.path.substring(0, baseUri.path.length - 1)
         : baseUri.path;
+    // 服务端 WS 同样带机器前缀 (/api/v1/local/... 或 /api/v1/m/{id}/...)
     final normalizedPath = path.startsWith('/') ? path : '/$path';
+    final machinePath = MachinePath.add(normalizedPath);
 
     return baseUri.replace(
       scheme: baseUri.scheme == 'https' ? 'wss' : 'ws',
-      path: '$normalizedBasePath$normalizedPath',
+      path: '$normalizedBasePath$machinePath',
       queryParameters:
           queryParameters.isEmpty ? null : Map<String, String>.from(queryParameters),
     );

@@ -64,5 +64,12 @@
 	<string>需要使用面容 ID 来保护您的 hitest 服务器数据安全</string>
 	<key>NSBiometricUsageDescription</key>
 	<string>需要使用生物识别来验证身份并解锁敏感操作</string>
+	<key>NSLocalNetworkUsageDescription</key>
+	<string>需要访问局域网来连接你的 hitest 服务器</string>
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<key>NSAllowsArbitraryLoads</key>
+		<true/>
+	</dict>
 </dict>
 </plist>
