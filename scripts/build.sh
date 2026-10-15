@@ -48,18 +48,20 @@ build_go() {
 # 真包的 Info.plist 是二进制 plist(bplist00), XML 解析读不到 → 有 plutil 且是二进制就走 plutil。
 bundle_executable() {
   local P="$1" MAGIC
-  MAGIC=$(head -c 6 "$P" 2>/dev/null)
+  # 都带 || true: 脚本顶层是 set -euo pipefail, 赋值里 $() 失败会直接终止整个构建，
+  # 这里要的是"读不到就空着, 由调用方报错"
+  MAGIC=$(head -c 6 "$P" 2>/dev/null || true)
   case "$MAGIC" in
-    bplist*) command -v plutil >/dev/null 2>&1 && plutil -extract CFBundleExecutable raw -o - "$P" 2>/dev/null ;;
-    *) tr '\n\r\t' '   ' < "$P" | sed 's/<[^>]*>/ /g' \
-         | awk '{ for (i = 1; i < NF; i++) if ($i == "CFBundleExecutable") { print $(i + 1); exit } }' ;;
+    bplist*) { command -v plutil >/dev/null 2>&1 && plutil -extract CFBundleExecutable raw -o - "$P" 2>/dev/null; } || true ;;
+    *) { tr '\n\r\t' '   ' < "$P" | sed 's/<[^>]*>/ /g' \
+          | awk '{ for (i = 1; i < NF; i++) if ($i == "CFBundleExecutable") { print $(i + 1); exit } }'; } || true ;;
   esac
 }
 
 # package_ipa <.app 目录> <产物 ipa 路径>
 # 安装器靠 Payload/ 下那层 <App>.app 目录定位 bundle, 所以打包前后各查一道。
 package_ipa() {
-  local APP="$1" OUT="$2" NAME OUT_DIR OUT_ABS STAGE EXE LIST
+  local APP="$1" OUT="$2" NAME OUT_DIR OUT_DIR_ABS STAGE EXE LIST
   if [ ! -d "$APP" ]; then echo "!! 没找到 $APP" >&2; return 1; fi
   NAME=$(basename "$APP")
   # bundle 目录名必须以 .app 结尾, 这是安装器唯一的定位依据。
@@ -70,15 +72,17 @@ package_ipa() {
     *) echo "!! $APP 不是 .app bundle（目录名要以 .app 结尾）, 这样打出来装不上" >&2; return 1 ;;
   esac
 
-  # zip 在暂存目录里执行, 产物路径必须先变绝对（先建目录再取绝对路径）
+  # zip 在暂存目录里执行, 产物路径必须先变绝对（先建目录再取绝对路径）。
+  # || true 是为了: 顶层 set -euo pipefail 下, 赋值里的 $() 失败会直接终止整个构建,
+  # 而这里希望走下面的显式报错。
   OUT_DIR=$(dirname "$OUT")
   mkdir -p "$OUT_DIR"
-  OUT_ABS=$(cd "$OUT_DIR" && pwd)/$(basename "$OUT")
-  case "$OUT_ABS" in
-    /*) ;;
-    *) echo "!! 产物路径解析失败: $OUT" >&2; return 1 ;;
-  esac
-  OUT="$OUT_ABS"
+  OUT_DIR_ABS=$( (cd "$OUT_DIR" && pwd) || true)
+  if [ -z "$OUT_DIR_ABS" ]; then
+    echo "!! 产物目录解析失败: $OUT_DIR" >&2
+    return 1
+  fi
+  OUT="$OUT_DIR_ABS/$(basename "$OUT")"
   rm -f "$OUT"
 
   # 第一道（文件系统层）: 别在仓库根建 Payload —— 顺序写反会把 .app 摊平成 Payload/Info.plist
@@ -89,8 +93,14 @@ package_ipa() {
     echo "!! 暂存后没有 Payload/$NAME/Info.plist, .app 没进去（检查 $APP）" >&2
     rm -rf "$STAGE"; return 1
   fi
-  EXE=$(bundle_executable "$STAGE/Payload/$NAME/Info.plist")
-  if [ -n "$EXE" ] && [ ! -f "$STAGE/Payload/$NAME/$EXE" ]; then
+  EXE=$(bundle_executable "$STAGE/Payload/$NAME/Info.plist" || true)
+  # 读不到 CFBundleExecutable 就算失败: 正常的 flutter bundle 一定有这一项,
+  # 空值只可能是 Info.plist 损坏/被截断 —— 不能因为"不知道叫什么"就放行
+  if [ -z "$EXE" ]; then
+    echo "!! 读不到 CFBundleExecutable, $NAME/Info.plist 可能损坏" >&2
+    rm -rf "$STAGE"; return 1
+  fi
+  if [ ! -f "$STAGE/Payload/$NAME/$EXE" ]; then
     echo "!! Payload/$NAME 里没有可执行文件 $EXE" >&2
     rm -rf "$STAGE"; return 1
   fi
@@ -107,7 +117,7 @@ package_ipa() {
 
   # 第二道（归档层）: 用变量匹配, 不写 `unzip -Z1 | grep -q` ——
   # pipefail 下 grep 提前退出会让 unzip 收 SIGPIPE, 命中也判失败（我在 macOS 上踩过）
-  LIST=$(unzip -Z1 "$OUT")
+  LIST=$(unzip -Z1 "$OUT" || true)
   case $'\n'"$LIST"$'\n' in
     *$'\n'"Payload/$NAME/"*) ;;
     *)
