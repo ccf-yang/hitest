@@ -35,7 +35,8 @@ build_go() {
   build_web
   echo "==> 构建 Go 二进制"
   mkdir -p bin
-  for arch in "${ARCH//,/ }"; do
+  IFS=',' read -ra __ARCHS <<< "$ARCH"
+  for arch in "${__ARCHS[@]}"; do
     echo "    linux/$arch"
     CGO_ENABLED=0 GOOS=linux GOARCH="$arch" \
       go build -ldflags="-s -w" -o "bin/hitest-linux-$arch" ./cmd/hitest

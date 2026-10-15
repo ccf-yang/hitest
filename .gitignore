@@ -28,6 +28,8 @@ __debug*
 
 # Dependency directories
 /pkg/
+node_modules/
+bin/
 __debug_bin
 .fileList.txt
 hitest.code-workspace
