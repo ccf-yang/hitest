@@ -1,7 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 
-import '../../core/config/api_constants.dart';
 import '../../core/network/hitest_auth_headers.dart';
 import '../../core/network/machine_path.dart';
 
@@ -24,6 +23,7 @@ class ServerConnectionService {
     required String serverUrl,
     required String apiKey,
     bool allowInsecureTls = false,
+    String machine = 'local',
   }) async {
     final stopwatch = Stopwatch()..start();
 
@@ -59,7 +59,7 @@ class ServerConnectionService {
       if (apiKey.isNotEmpty) headers.addAll(OnePanelAuthHeaders.build(apiKey));
 
       final response = await dio.get(
-        MachinePath.add('/api/v1/monitor/base/os'),
+        MachinePath.add('/api/v1/monitor/base/os', machine: machine),
         options: Options(
           headers: headers,
         ),

@@ -1,7 +1,6 @@
-/// hitest API常量配置
+/// hitest API 常量配置
 class ApiConstants {
-  // API版本配置 - hitest 使用 /api/v1 路径前缀
-  static const String apiVersion = 'v2';
+  // API 版本前缀 - hitest 服务端挂在 /api/v1
   static const String apiPrefix = '/api/v1';
 
   // 默认服务器配置
@@ -33,56 +32,7 @@ class ApiConstants {
   static const String authHeaderToken = 'hitest-Token';
   static const String authHeaderTimestamp = 'hitest-Timestamp';
   static const String authPrefix = 'hitest'; // MD5计算前缀
-}
 
-/// hitest API路径常量
-class ApiPaths {
-  // 基础路径
-  static String ai(String endpoint) =>
-      ApiConstants.buildApiPath('/ai$endpoint');
-  static String dashboard(String endpoint) =>
-      ApiConstants.buildApiPath('/dashboard$endpoint');
-  static String apps(String endpoint) =>
-      ApiConstants.buildApiPath('/apps$endpoint');
-  static String files(String endpoint) =>
-      ApiConstants.buildApiPath('/files$endpoint');
-  static String settings(String endpoint) =>
-      ApiConstants.buildApiPath('/settings$endpoint');
-  static String containers(String endpoint) =>
-      ApiConstants.buildApiPath('/containers$endpoint');
-  static String backups(String endpoint) =>
-      ApiConstants.buildApiPath('/backups$endpoint');
-  static String cronjob(String endpoint) =>
-      ApiConstants.buildApiPath('/cronjob$endpoint');
-  static String database(String endpoint) =>
-      ApiConstants.buildApiPath('/database$endpoint');
-  static String host(String endpoint) =>
-      ApiConstants.buildApiPath('/host$endpoint');
-  static String nginx(String endpoint) =>
-      ApiConstants.buildApiPath('/nginx$endpoint');
-  static String process(String endpoint) =>
-      ApiConstants.buildApiPath('/process$endpoint');
-  static String website(String endpoint) =>
-      ApiConstants.buildApiPath('/website$endpoint');
-  static String group(String endpoint) =>
-      ApiConstants.buildApiPath('/group$endpoint');
-
-  // 特殊路径（无需认证）
-  static const String authLogin = '/api/v1/monitor/base/os'; // 新服务端无登录接口, 复用探活路径
-  static const String healthCheck = '/api/v1/monitor/base/os';
-
-  // AI 相关具体路径
-  static const String aiOllamaModel = '/ai/ollama/model';
-  static const String aiOllamaModelSearch = '/ai/ollama/model/search';
-  static const String aiOllamaModelSync = '/ai/ollama/model/sync';
-  static const String aiOllamaModelDelete = '/ai/ollama/model/del';
-  static const String aiOllamaModelClose = '/ai/ollama/close';
-  static const String aiGpuLoad = '/ai/gpu/load';
-  static const String aiDomainBind = '/ai/domain/bind';
-  static const String aiDomainGet = '/ai/domain/get';
-
-  // Dashboard 相关具体路径
-  static const String dashboardBaseOs = '/dashboard/base/os';
-  static const String dashboardQuickOption = '/dashboard/quick/option';
-  static const String dashboardAppLauncher = '/dashboard/app/launcher';
+  // 服务端没有登录接口, 探活复用 monitor 基础信息端点
+  static const String authLogin = '/api/v1/monitor/base/os';
 }

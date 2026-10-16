@@ -19,6 +19,7 @@ class _ServerFormPageState extends State<ServerFormPage> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _urlController = TextEditingController();
+  final _machineController = TextEditingController();
   final _apiKeyController = TextEditingController();
   final _tokenValidityController = TextEditingController(text: '0');
   final _repository = const ServerRepository();
@@ -33,10 +34,15 @@ class _ServerFormPageState extends State<ServerFormPage> {
   void dispose() {
     _nameController.dispose();
     _urlController.dispose();
+    _machineController.dispose();
     _apiKeyController.dispose();
     _tokenValidityController.dispose();
     super.dispose();
   }
+
+  String get _machine => _machineController.text.trim().isEmpty
+      ? 'local'
+      : _machineController.text.trim();
 
   Future<void> _testConnection() async {
     if (_urlController.text.trim().isEmpty) {
@@ -56,6 +62,7 @@ class _ServerFormPageState extends State<ServerFormPage> {
         serverUrl: _urlController.text.trim(),
         apiKey: _apiKeyController.text.trim(),
         allowInsecureTls: _allowInsecureTls,
+        machine: _machine,
       );
 
       if (!mounted) return;
@@ -108,6 +115,7 @@ class _ServerFormPageState extends State<ServerFormPage> {
         name: _nameController.text.trim(),
         url: _urlController.text.trim(),
         apiKey: _apiKeyController.text.trim(),
+        machine: _machine,
         tokenValidity: int.tryParse(_tokenValidityController.text.trim()) ?? 0,
         allowInsecureTls: _allowInsecureTls,
         isDefault: true,
@@ -176,6 +184,17 @@ class _ServerFormPageState extends State<ServerFormPage> {
                 validator: (value) => (value == null || value.trim().isEmpty)
                     ? l10n.serverFormRequired
                     : null,
+              ),
+              const SizedBox(height: AppDesignTokens.spacingLg),
+              TextFormField(
+                controller: _machineController,
+                decoration: InputDecoration(
+                  labelText: l10n.serverFormMachine,
+                  hintText: l10n.serverFormMachineHint,
+                  helperText: l10n.serverFormMachineHelp,
+                ),
+                autocorrect: false,
+                enableSuggestions: false,
               ),
               const SizedBox(height: AppDesignTokens.spacingLg),
               TextFormField(

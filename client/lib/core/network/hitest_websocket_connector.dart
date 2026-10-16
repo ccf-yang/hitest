@@ -30,6 +30,7 @@ class OnePanelWebSocketConnector {
         baseUrl: config.url,
         path: path,
         queryParameters: queryParameters,
+        machine: config.machine,
       ).toString(),
       headers: headers,
       customClient: customClient,
@@ -45,6 +46,7 @@ class OnePanelWebSocketConnector {
       baseUrl: config.url,
       path: path,
       queryParameters: queryParameters,
+      machine: config.machine,
     );
   }
 
@@ -52,6 +54,7 @@ class OnePanelWebSocketConnector {
     required String baseUrl,
     required String path,
     required Map<String, String> queryParameters,
+    required String machine,
   }) {
     final baseUri = Uri.parse(baseUrl);
     final normalizedBasePath = baseUri.path.endsWith('/')
@@ -59,7 +62,7 @@ class OnePanelWebSocketConnector {
         : baseUri.path;
     // 服务端 WS 同样带机器前缀 (/api/v1/local/... 或 /api/v1/m/{id}/...)
     final normalizedPath = path.startsWith('/') ? path : '/$path';
-    final machinePath = MachinePath.add(normalizedPath);
+    final machinePath = MachinePath.add(normalizedPath, machine: machine);
 
     return baseUri.replace(
       scheme: baseUri.scheme == 'https' ? 'wss' : 'ws',

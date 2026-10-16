@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import '../services/logger/logger_service.dart';
 import '../config/api_constants.dart';
 import 'network_exceptions.dart';
+import 'machine_path.dart';
 import 'interceptors/auth_interceptor.dart';
 import 'interceptors/machine_prefix_interceptor.dart';
 import 'interceptors/logging_interceptor.dart';
@@ -18,10 +19,11 @@ class DioClient {
     String? baseUrl,
     String? apiKey,
     bool allowInsecureTls = false,
+    String machine = MachinePath.localMachine,
   }) : _dio = Dio(_createBaseOptionsStatic(baseUrl)) {
     _authInterceptor = AuthInterceptor(apiKey);
     _configureTls(allowInsecureTls);
-    _addInterceptors();
+    _addInterceptors(machine);
   }
 
   /// 创建基础配置（静态方法，用于构造函数）
@@ -43,9 +45,9 @@ class DioClient {
   }
 
   /// 添加拦截器
-  void _addInterceptors() {
+  void _addInterceptors(String machine) {
     // 机器前缀最先: 后续鉴权/日志/重试都按最终 URL 处理
-    _dio.interceptors.add(MachinePrefixInterceptor());
+    _dio.interceptors.add(MachinePrefixInterceptor(machine: machine));
     _dio.interceptors.add(_authInterceptor);
     _dio.interceptors.add(BusinessResponseInterceptor());
     _dio.interceptors.add(LoggingInterceptor(ApiConstants.isDebugMode));
@@ -255,6 +257,7 @@ class DioClient {
   Future<Response> download(
     String urlPath,
     String savePath, {
+    Map<String, dynamic>? queryParameters,
     ProgressCallback? onReceiveProgress,
     Options? options,
   }) async {
@@ -262,6 +265,7 @@ class DioClient {
       return await _dio.download(
         urlPath,
         savePath,
+        queryParameters: queryParameters,
         onReceiveProgress: onReceiveProgress,
         options: options,
       );

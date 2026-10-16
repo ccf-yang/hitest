@@ -214,6 +214,12 @@ class ApiConfig {
   final String name;
   final String url;
   final String apiKey;
+
+  /// 要操作的目标机器，对应服务端 `/api/v1/m/{machine}/*` 的机器 ID。
+  /// 'local' = 中心服务内置的本机 agent（走 `/api/v1/local/*`）。
+  /// hub 与 agent 在同一台机器（比如都部署在盒子）时留 local 即可；
+  /// 一台 hub 下挂多个节点时必须填注册上来的 agent id，否则永远只看得到 hub 本机。
+  final String machine;
   final int tokenValidity;
   final bool allowInsecureTls;
   final bool isDefault;
@@ -224,6 +230,7 @@ class ApiConfig {
     required this.name,
     required this.url,
     required this.apiKey,
+    required this.machine,
     this.tokenValidity = 0,
     this.allowInsecureTls = false,
     this.isDefault = false,
@@ -236,6 +243,7 @@ class ApiConfig {
       'name': name,
       'url': url,
       'apiKey': apiKey,
+      'machine': machine,
       'tokenValidity': tokenValidity,
       'allowInsecureTls': allowInsecureTls,
       'isDefault': isDefault,
@@ -249,6 +257,9 @@ class ApiConfig {
       name: json['name'],
       url: json['url'],
       apiKey: json['apiKey'],
+      machine: (json['machine'] as String?)?.isNotEmpty == true
+          ? json['machine'] as String
+          : 'local',
       tokenValidity: json['tokenValidity'] as int? ?? 0,
       allowInsecureTls: json['allowInsecureTls'] as bool? ?? false,
       isDefault: json['isDefault'] ?? false,
@@ -372,6 +383,7 @@ class ApiConfigManager {
             name: c.name,
             url: c.url,
             apiKey: c.apiKey,
+            machine: c.machine,
             tokenValidity: c.tokenValidity,
             allowInsecureTls: c.allowInsecureTls,
             isDefault: false,

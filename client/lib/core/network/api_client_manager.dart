@@ -28,11 +28,13 @@ class ApiClientManager {
     String serverUrl,
     String apiKey, {
     bool allowInsecureTls = false,
+    String machine = 'local',
   }) {
     final nextMeta = _ClientConfigMeta(
       url: serverUrl,
       apiKey: apiKey,
       allowInsecureTls: allowInsecureTls,
+      machine: machine,
     );
     final currentMeta = _clientMeta[serverId];
 
@@ -44,6 +46,7 @@ class ApiClientManager {
       baseUrl: serverUrl,
       apiKey: apiKey,
       allowInsecureTls: allowInsecureTls,
+      machine: machine,
     );
     _clients[serverId] = client;
     _clientMeta[serverId] = nextMeta;
@@ -54,13 +57,14 @@ class ApiClientManager {
     final config = await _getCurrentConfig();
     appLogger.dWithPackage(
       'core.network.api_client_manager',
-      'getCurrentClient: serverId=${config.id}, url=${config.url}, apiKeyPresent=${config.apiKey.isNotEmpty}, allowInsecureTls=${config.allowInsecureTls}',
+      'getCurrentClient: serverId=${config.id}, url=${config.url}, machine=${config.machine}, apiKeyPresent=${config.apiKey.isNotEmpty}, allowInsecureTls=${config.allowInsecureTls}',
     );
     return getClient(
       config.id,
       config.url,
       config.apiKey,
       allowInsecureTls: config.allowInsecureTls,
+      machine: config.machine,
     );
   }
 
@@ -80,11 +84,13 @@ class _ClientConfigMeta {
     required this.url,
     required this.apiKey,
     required this.allowInsecureTls,
+    required this.machine,
   });
 
   final String url;
   final String apiKey;
   final bool allowInsecureTls;
+  final String machine;
 
   @override
   bool operator ==(Object other) {
@@ -94,9 +100,11 @@ class _ClientConfigMeta {
     return other is _ClientConfigMeta &&
         other.url == url &&
         other.apiKey == apiKey &&
-        other.allowInsecureTls == allowInsecureTls;
+        other.allowInsecureTls == allowInsecureTls &&
+        other.machine == machine;
   }
 
   @override
-  int get hashCode => Object.hash(url, apiKey, allowInsecureTls);
+  int get hashCode =>
+      Object.hash(url, apiKey, allowInsecureTls, machine);
 }
