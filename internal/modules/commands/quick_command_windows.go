@@ -4,6 +4,7 @@ package commands
 
 import (
 	"context"
+	"log"
 	"os"
 	"os/exec"
 )
@@ -15,6 +16,12 @@ func runQuickCommandShell(ctx context.Context, command string) (string, error) {
 		shell = "cmd"
 	}
 	cmd := exec.CommandContext(ctx, shell, "/c", command)
-	out, err := cmd.CombinedOutput()
-	return string(out), err
+	out := &cappedWriter{limit: inFlightOutputLimit}
+	cmd.Stdout = out
+	cmd.Stderr = out
+	err := cmd.Run()
+	if n := out.Truncated(); n > 0 {
+		log.Printf("[commands] 预置命令输出超内存上限, 已丢弃 %d 字节", n)
+	}
+	return out.String(), err
 }
