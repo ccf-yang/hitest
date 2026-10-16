@@ -41,6 +41,7 @@ func main() {
 func serveCmd() *cobra.Command {
 	var (
 		configPath = "config.yaml"
+		debug      = false
 	)
 	cmd := &cobra.Command{
 		Use:   "serve",
@@ -50,12 +51,16 @@ func serveCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
+			if debug {
+				cfg.Debug = true // 命令行优先; config.yaml 里写 debug: true 也一样
+			}
 			ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 			defer stop()
 			return server.Run(ctx, *cfg)
 		},
 	}
 	cmd.Flags().StringVar(&configPath, "config", "config.yaml", "配置文件路径")
+	cmd.Flags().BoolVar(&debug, "debug", false, "每 60s 打一行内存/Goroutine 快照, 并在 127.0.0.1:6061 开 pprof")
 	return cmd
 }
 
@@ -66,6 +71,7 @@ func agentCmd() *cobra.Command {
 		server = ""
 		token  = ""
 		name   = ""
+		debug  = false
 	)
 	cmd := &cobra.Command{
 		Use:   "agent",
@@ -76,12 +82,13 @@ func agentCmd() *cobra.Command {
 			}
 			ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 			defer stop()
-			return agent.Start(ctx, agent.Options{ID: name, Token: token, Server: server})
+			return agent.Start(ctx, agent.Options{ID: name, Token: token, Server: server, Debug: debug})
 		},
 	}
 	cmd.Flags().StringVarP(&server, "server", "s", "", "server 地址 ws://host:port")
 	cmd.Flags().StringVarP(&token, "token", "t", "", "注册 token")
 	cmd.Flags().StringVarP(&name, "name", "n", "", "机器 ID (默认 hostname)")
+	cmd.Flags().BoolVar(&debug, "debug", false, "每 60s 打一行内存/Goroutine 快照, 并在 127.0.0.1:6062 开 pprof")
 	return cmd
 }
 

@@ -24,9 +24,10 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
 
+	"hitest/internal/debugx"
 	"hitest/internal/modules"
-	"hitest/internal/store"
 	"hitest/internal/modules/terminal"
+	"hitest/internal/store"
 	"hitest/internal/transport"
 )
 
@@ -36,6 +37,7 @@ type Options struct {
 	Server   string // ws://host:port 或 wss://
 	SockPath string // unix socket 路径（空则自动生成）
 	DataDir  string // sqlite 存放目录（模块持久化用）
+	Debug    bool   // 内存/Goroutine 快照 + 回环 pprof（--debug）
 }
 
 // LocalStart 只启动本机 API（gin + 模块, 监听 unix socket）。
@@ -86,6 +88,16 @@ func Start(ctx context.Context, opts Options) error {
 	if opts.ID == "" {
 		h, _ := os.Hostname()
 		opts.ID = h
+	}
+	// 独立 agent 进程才开 debug；server 进程里的内置本机 agent 由 server 那侧统一报（同进程, 一份快照就够）
+	if opts.Debug {
+		debugx.Start(ctx, debugx.Options{
+			Role: "agent",
+			Addr: "127.0.0.1:6062",
+			Extra: func() string {
+				return "id=" + opts.ID
+			},
+		})
 	}
 	sock, err := LocalStart(ctx, opts)
 	if err != nil {

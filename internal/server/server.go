@@ -16,15 +16,16 @@ import (
 	"net"
 	"net/http"
 	"net/http/httputil"
-	"strings"
 	"net/url"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
 
 	"hitest/internal/agent"
+	"hitest/internal/debugx"
 	"hitest/internal/modules/terminal"
 	"hitest/internal/store"
 	"hitest/internal/transport"
@@ -32,19 +33,20 @@ import (
 
 type Config struct {
 	Port        int    `yaml:"port"`
-	Token       string `yaml:"token"`         // agent 注册用
-	AccessToken string `yaml:"access_token"`  // Web/API 访问用（空 = 局域网无鉴权）
-	CertFile    string `yaml:"cert_file"`     // TLS（简单模式）
+	Token       string `yaml:"token"`        // agent 注册用
+	AccessToken string `yaml:"access_token"` // Web/API 访问用（空 = 局域网无鉴权）
+	CertFile    string `yaml:"cert_file"`    // TLS（简单模式）
 	KeyFile     string `yaml:"key_file"`
 	DataDir     string `yaml:"data_dir"`
+	Debug       bool   `yaml:"debug"` // 内存/Goroutine 快照 + 回环 pprof；也可用 --debug 打开
 }
 
 type Server struct {
-	cfg   Config
-	hub   *transport.Hub
-	store *store.Store
+	cfg       Config
+	hub       *transport.Hub
+	store     *store.Store
 	localSock string
-	ctx   context.Context
+	ctx       context.Context
 }
 
 func Run(ctx context.Context, cfg Config) error {
@@ -72,6 +74,16 @@ func Run(ctx context.Context, cfg Config) error {
 	})
 	if err != nil {
 		return err
+	}
+
+	// debug 快照（--debug 或 config.debug: true）。附带在线机器数, 方便看「涨的内存和谁有关」。
+	if cfg.Debug {
+		debugx.Start(ctx, debugx.Options{
+			Role: "server",
+			Extra: func() string {
+				return fmt.Sprintf("machines=%d", len(s.hub.IDs()))
+			},
+		})
 	}
 	return s.listen()
 }
