@@ -8,6 +8,8 @@ const List<ClientModule> kPinnableClientModules = [
 enum ClientModule {
   servers,
   monitoring,
+  files,
+  terminal,
   settings,
 }
 
@@ -28,6 +30,10 @@ extension ClientModuleX on ClientModule {
         return 'servers';
       case ClientModule.monitoring:
         return 'monitoring';
+      case ClientModule.files:
+        return 'files';
+      case ClientModule.terminal:
+        return 'terminal';
       case ClientModule.settings:
         return 'settings';
     }
@@ -39,6 +45,8 @@ extension ClientModuleX on ClientModule {
       case ClientModule.settings:
         return false;
       case ClientModule.monitoring:
+      case ClientModule.files:
+      case ClientModule.terminal:
         return true;
     }
   }
@@ -49,6 +57,8 @@ extension ClientModuleX on ClientModule {
     switch (this) {
       case ClientModule.servers:
       case ClientModule.monitoring:
+      case ClientModule.files:
+      case ClientModule.terminal:
       case ClientModule.settings:
         return false;
     }
@@ -60,6 +70,10 @@ extension ClientModuleX on ClientModule {
         return Icons.dns_outlined;
       case ClientModule.monitoring:
         return Icons.monitor_heart_outlined;
+      case ClientModule.files:
+        return Icons.folder_outlined;
+      case ClientModule.terminal:
+        return Icons.terminal_outlined;
       case ClientModule.settings:
         return Icons.settings_outlined;
     }
@@ -71,6 +85,10 @@ extension ClientModuleX on ClientModule {
         return Icons.dns;
       case ClientModule.monitoring:
         return Icons.monitor_heart;
+      case ClientModule.files:
+        return Icons.folder;
+      case ClientModule.terminal:
+        return Icons.terminal;
       case ClientModule.settings:
         return Icons.settings;
     }
@@ -82,6 +100,10 @@ extension ClientModuleX on ClientModule {
         return l10n.navServer;
       case ClientModule.monitoring:
         return l10n.serverModuleMonitoring;
+      case ClientModule.files:
+        return l10n.navFiles;
+      case ClientModule.terminal:
+        return l10n.navTerminal;
       case ClientModule.settings:
         return l10n.settingsPageTitle;
     }

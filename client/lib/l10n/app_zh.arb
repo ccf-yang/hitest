@@ -8,6 +8,7 @@
   "commonMore": "更多",
   "commonSave": "保存",
   "commonDelete": "删除",
+  "commonClose": "关闭",
   "commonRefresh": "刷新",
   "commonComingSoon": "即将支持",
   "commonEmpty": "暂无数据",
@@ -127,5 +128,73 @@
   "env": "环境变量",
   "quickCommandsTitle": "快捷命令",
   "quickCommandsEmptyDesc": "暂无预置命令。请在服务端 hitest/conf/commands.yaml 中按 name/command 配置。",
-  "quickCommandsNoOutput": "（无输出）"
+  "quickCommandsNoOutput": "（无输出）",
+  "serverFormMachine": "机器 ID",
+  "serverFormMachineHint": "local 或留空 = 中心服务所在机器",
+  "serverFormMachineHelp": "hub 下挂了远程节点时，填注册上来的 agent id（例如 box）才能操作那台机器；留空只看 hub 本机。",
+  "navFiles": "文件",
+  "navTerminal": "终端",
+  "filesTitle": "文件",
+  "filesEmpty": "空目录",
+  "filesLoadFailed": "读取目录失败：{error}",
+  "@filesLoadFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "filesUp": "返回上级",
+  "filesHome": "根目录",
+  "filesNewFolder": "新建目录",
+  "filesNewFolderHint": "目录名",
+  "filesRename": "重命名",
+  "filesRenameHint": "新名称",
+  "filesDeleteConfirm": "删除「{name}」？目录会连同内容一并删除。",
+  "@filesDeleteConfirm": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "filesOpSuccess": "操作完成",
+  "filesOpFailed": "操作失败：{error}",
+  "@filesOpFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "filesDownloaded": "已保存到本机",
+  "filesPickToUpload": "选择要上传的文件",
+  "filesUploading": "上传中",
+  "filesPreview": "查看内容",
+  "filesPreviewTooLarge": "文件较大，不在此预览，请下载后查看。",
+  "filesFileSizeUnknown": "未知大小",
+  "terminalTitle": "终端",
+  "terminalConnect": "连接",
+  "terminalDisconnect": "断开",
+  "terminalReconnect": "重新连接",
+  "terminalNotConnected": "未连接",
+  "terminalConnecting": "连接中…",
+  "terminalClosed": "会话已结束",
+  "terminalFailed": "连接失败：{error}",
+  "@terminalFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "terminalShell": "Shell",
+  "terminalShellHint": "/bin/bash -l",
+  "terminalSend": "发送",
+  "terminalClear": "清屏",
+  "terminalCtrlC": "Ctrl-C",
+  "terminalKeyboard": "键盘",
+  "terminalHideKeyboard": "收起键盘",
+  "terminalUp": "上方向键",
+  "terminalDown": "下方向键"
 }

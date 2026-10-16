@@ -10,6 +10,8 @@ import 'package:hitest/widgets/navigation/app_bottom_navigation_bar.dart';
 const List<ClientModule> kShellModules = [
   ClientModule.servers,
   ClientModule.monitoring,
+  ClientModule.files,
+  ClientModule.terminal,
   ClientModule.settings,
 ];
 

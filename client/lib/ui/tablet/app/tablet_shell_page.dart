@@ -27,6 +27,8 @@ class _TabletShellPageState extends State<TabletShellPage> {
   static const List<ClientModule> _modules = [
     ClientModule.servers,
     ClientModule.monitoring,
+    ClientModule.files,
+    ClientModule.terminal,
     ClientModule.settings,
   ];
 

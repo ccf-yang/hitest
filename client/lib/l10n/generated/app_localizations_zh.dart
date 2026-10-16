@@ -6,15 +6,6 @@ import 'app_localizations.dart';
 
 /// The translations for Chinese (`zh`).
 class AppLocalizationsZh extends AppLocalizations {
-  @override
-  String get quickCommandsTitle => '快捷命令';
-
-  @override
-  String get quickCommandsEmptyDesc => '暂无预置命令。请在服务端 hitest/conf/commands.yaml 中按 name/command 配置。';
-
-  @override
-  String get quickCommandsNoOutput => '（无输出）';
-
   AppLocalizationsZh([String locale = 'zh']) : super(locale);
 
   @override
@@ -32,30 +23,20 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String get commonConfirm => '确认';
 
-
-
-
-
   @override
   String get commonMore => '更多';
-
-
-
 
   @override
   String get commonSave => '保存';
 
-
-
   @override
   String get commonDelete => '删除';
 
+  @override
+  String get commonClose => '关闭';
 
   @override
   String get commonRefresh => '刷新';
-
-
-
 
   @override
   String get commonComingSoon => '即将支持';
@@ -65,316 +46,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get commonLoadFailedTitle => '加载失败';
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-      '授权信息必须是合法 JSON 对象。';
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
   @override
   String get monitorNetworkLabel => '网络';
@@ -394,9 +65,6 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String get navServer => '服务器';
 
-
-
-
   @override
   String noServerSelectedTitle(String module) {
     return '$module 需要先选择服务器';
@@ -404,15 +72,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get noServerSelectedDescription => '请先选择当前服务器，再进入该模块。';
-
-
-
-
-
-
-
-
-
 
   @override
   String get serverPageTitle => '服务器';
@@ -429,11 +88,8 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String get serverListEmptyDesc => '先添加一个 hitest 服务器开始使用。';
 
-
-
   @override
   String get serverCurrent => '当前';
-
 
   @override
   String get serverIpLabel => 'IP';
@@ -459,142 +115,14 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String get serverDetailTitle => '服务器详情';
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   @override
   String get serverModuleMonitoring => '监控';
-
-
-
 
   @override
   String get serverActionRefresh => '刷新';
 
   @override
   String get serverActionSwitch => '切换服务器';
-
 
   @override
   String get serverFormTitle => '添加服务器';
@@ -652,7 +180,6 @@ class AppLocalizationsZh extends AppLocalizations {
     return '删除服务器失败：$error';
   }
 
-
   @override
   String get serverTestSuccess => '连接成功';
 
@@ -680,115 +207,17 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String get serverFormMinutes => '分钟';
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   @override
   String get settingsPageTitle => '设置';
 
   @override
   String get settingsGeneral => '通用';
 
-
-
   @override
   String get settingsAppSectionTitle => '应用';
 
-
-
-
-
-
-
-
   @override
   String get settingsTheme => '主题';
-
-
 
   @override
   String get settingsServerManagement => '服务器管理';
@@ -796,68 +225,6 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String get settingsServerManagementSubtitle =>
       '管理多台已连接服务器；服务端系统设置仅在对应服务器详情页中提供。';
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-      '当前为面向公众测试与反馈收集的 Dev 版本，推荐使用内网 IP（内网 hitest 服务器或虚拟机）进行测试以避免影响。\n\n系统已自动对日志中的公网 IP 等信息进行脱敏处理。请勿将日志随意发送给无关人员，并在反馈问题前自行检查是否还有其他敏感信息遗留。';
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
   @override
   String get themeSystem => '跟随系统';
@@ -868,147 +235,8 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String get themeDark => '深色';
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-      'hitest Client 是用于管理 hitest 服务器的移动客户端，支持多环境统一管理。';
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-      '服务器 · 网站 · 容器 · 数据库 · 防火墙 · 终端 · 监控';
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   @override
   String get authLogin => '登录';
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
   @override
   String get notFoundTitle => '页面不存在';
@@ -1016,26 +244,14 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String get notFoundDesc => '请求的页面不存在或已迁移。';
 
-
-
-
-
-
-
-
-
-
-
   @override
   String get monitorSettings => '监控设置';
-
 
   @override
   String get monitorInterval => '监控间隔';
 
   @override
   String get monitorIntervalUnit => '秒';
-
 
   @override
   String get monitorRetentionUnit => '天';
@@ -1058,162 +274,6 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String get monitorSettingsFailed => '保存设置失败';
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-      '该操作会替换当前面板 TLS 证书，并可能在网关重载前短暂影响已连接会话。';
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   @override
   String get monitorSettingsTitle => '监控设置';
 
@@ -1226,1370 +286,148 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String get monitorSettingsEnable => '启用监控';
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   @override
   String get commonError => '发生错误';
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
   @override
   String get env => '环境变量';
 
+  @override
+  String get quickCommandsTitle => '快捷命令';
 
+  @override
+  String get quickCommandsEmptyDesc =>
+      '暂无预置命令。请在服务端 hitest/conf/commands.yaml 中按 name/command 配置。';
 
+  @override
+  String get quickCommandsNoOutput => '（无输出）';
 
+  @override
+  String get serverFormMachine => '机器 ID';
 
+  @override
+  String get serverFormMachineHint => 'local 或留空 = 中心服务所在机器';
 
+  @override
+  String get serverFormMachineHelp =>
+      'hub 下挂了远程节点时，填注册上来的 agent id（例如 box）才能操作那台机器；留空只看 hub 本机。';
 
+  @override
+  String get navFiles => '文件';
 
+  @override
+  String get navTerminal => '终端';
 
+  @override
+  String get filesTitle => '文件';
 
+  @override
+  String get filesEmpty => '空目录';
 
+  @override
+  String filesLoadFailed(String error) {
+    return '读取目录失败：$error';
+  }
 
+  @override
+  String get filesUp => '返回上级';
 
+  @override
+  String get filesHome => '根目录';
 
+  @override
+  String get filesNewFolder => '新建目录';
 
+  @override
+  String get filesNewFolderHint => '目录名';
 
+  @override
+  String get filesRename => '重命名';
 
+  @override
+  String get filesRenameHint => '新名称';
 
+  @override
+  String filesDeleteConfirm(String name) {
+    return '删除「$name」？目录会连同内容一并删除。';
+  }
 
+  @override
+  String get filesOpSuccess => '操作完成';
 
+  @override
+  String filesOpFailed(String error) {
+    return '操作失败：$error';
+  }
 
+  @override
+  String get filesDownloaded => '已保存到本机';
 
+  @override
+  String get filesPickToUpload => '选择要上传的文件';
 
+  @override
+  String get filesUploading => '上传中';
 
+  @override
+  String get filesPreview => '查看内容';
 
+  @override
+  String get filesPreviewTooLarge => '文件较大，不在此预览，请下载后查看。';
 
+  @override
+  String get filesFileSizeUnknown => '未知大小';
 
+  @override
+  String get terminalTitle => '终端';
 
+  @override
+  String get terminalConnect => '连接';
 
+  @override
+  String get terminalDisconnect => '断开';
 
+  @override
+  String get terminalReconnect => '重新连接';
 
+  @override
+  String get terminalNotConnected => '未连接';
 
+  @override
+  String get terminalConnecting => '连接中…';
 
+  @override
+  String get terminalClosed => '会话已结束';
 
+  @override
+  String terminalFailed(String error) {
+    return '连接失败：$error';
+  }
 
+  @override
+  String get terminalShell => 'Shell';
 
+  @override
+  String get terminalShellHint => '/bin/bash -l';
 
+  @override
+  String get terminalSend => '发送';
 
+  @override
+  String get terminalClear => '清屏';
 
+  @override
+  String get terminalCtrlC => 'Ctrl-C';
 
+  @override
+  String get terminalKeyboard => '键盘';
 
+  @override
+  String get terminalHideKeyboard => '收起键盘';
 
+  @override
+  String get terminalUp => '上方向键';
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-      '命令、计划任务、脚本库和备份主链路';
-
-
-      'PHP 与 Node.js 的通用运行时链路';
-
-
-      '分组中心、主机资产、SSH、进程、日志与工具箱工具入口';
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-      '应用商店运行时创建留到 Week 8 的专用向导，本周只支持手动运行时骨架。';
-
-      'PHP 创建流保留到 Week 8 的专用表单，本周先收口通用运行时骨架。';
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-      '统一管理 core 与 agent 命名空间下的可复用分组。';
-
-
-
-
-      '当前模块还没有可用分组，先创建一个，后续主机、命令或计划任务就能复用。';
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+  @override
+  String get terminalDown => '下方向键';
 }
