@@ -1,11 +1,11 @@
 // Package server: serve 角色。
 //
-//   /agent/ws                  agent 接入点（注册 → yamux）
-//   /api/v1/agents             机器列表（在线 + 历史注册）
-//   /api/v1/local/*            反代到内置本机 agent（unix socket）
-//   /api/v1/m/{id}/*           隧道反代到远程 agent（stream[http]）
-//     └ 其中 */terminal/ws     终端（本机直连 pty / 远程走 stream[term]）
-//   /                          内嵌前端
+//	/agent/ws                  agent 接入点（注册 → yamux）
+//	/api/v1/agents             机器列表（在线 + 历史注册）
+//	/api/v1/local/*            反代到内置本机 agent（unix socket）
+//	/api/v1/m/{id}/*           隧道反代到远程 agent（stream[http]）
+//	  └ 其中 */terminal/ws     终端（本机直连 pty / 远程走 stream[term]）
+//	/                          内嵌前端
 package server
 
 import (
@@ -19,6 +19,7 @@ import (
 	"net/url"
 	"path/filepath"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -47,6 +48,68 @@ type Server struct {
 	store     *store.Store
 	localSock string
 	ctx       context.Context
+
+	// 复用的反代 Transport。之前每个请求各 new 一个 http.Transport，而它自带 keep-alive：
+	// 既没人 CloseIdleConnections、也没设 IdleConnTimeout，于是每次 API 调用都留下一条
+	// 永远空闲的连接 —— hub 侧 2 个 persistConn goroutine + 1 个 server handler goroutine
+	// （本机路径还多占 1 个 unix fd），agent 侧再配一对 io.Copy。监控页轮询几小时
+	// 就是几百 goroutine、几百 fd。见 2026-10-16 的 goroutine 剖面。
+	rtMu      sync.Mutex
+	localRT   *http.Transport
+	machineRT map[string]*cachedRT
+}
+
+// cachedRT: Transport 把 DialContext 绑死在某一条 Session 上，所以只能按 Session 指针缓存；
+// agent 重连会换新 Session，复用旧 Transport 就会一直 502。
+type cachedRT struct {
+	sess *transport.Session
+	rt   *http.Transport
+}
+
+// agentTransport: 反代到 agent（本机 unix socket 或隧道 stream）用的 Transport。
+// IdleConnTimeout 是关键：空闲连接必须会自己死掉，否则就是每请求泄漏一条。
+func agentTransport(dial func(ctx context.Context) (net.Conn, error)) *http.Transport {
+	return &http.Transport{
+		DialContext: func(ctx context.Context, network, addr string) (net.Conn, error) {
+			return dial(ctx)
+		},
+		MaxIdleConns:        32,
+		MaxIdleConnsPerHost: 8,
+		IdleConnTimeout:     20 * time.Second,
+	}
+}
+
+// localTransport: 内置本机 agent 用一条就够，全进程共享。
+func (s *Server) localTransport() *http.Transport {
+	s.rtMu.Lock()
+	defer s.rtMu.Unlock()
+	if s.localRT == nil {
+		s.localRT = agentTransport(func(ctx context.Context) (net.Conn, error) {
+			return net.Dial("unix", s.localSock)
+		})
+	}
+	return s.localRT
+}
+
+// machineTransport: 每台机器一份，按 Session 指针校验；顺带回收已断线的缓存。
+func (s *Server) machineTransport(id string, sess *transport.Session) *http.Transport {
+	s.rtMu.Lock()
+	defer s.rtMu.Unlock()
+	if s.machineRT == nil {
+		s.machineRT = map[string]*cachedRT{}
+	}
+	if e, ok := s.machineRT[id]; ok && e.sess != sess {
+		e.rt.CloseIdleConnections()
+		delete(s.machineRT, id)
+	}
+	if e, ok := s.machineRT[id]; ok {
+		return e.rt
+	}
+	rt := agentTransport(func(ctx context.Context) (net.Conn, error) {
+		return sess.Open(transport.StreamHTTP)
+	})
+	s.machineRT[id] = &cachedRT{sess: sess, rt: rt}
+	return rt
 }
 
 func Run(ctx context.Context, cfg Config) error {
@@ -215,11 +278,7 @@ func (s *Server) routeLocal(c *gin.Context) {
 			pr.Out.URL.RawPath = ""
 			pr.SetXForwarded()
 		},
-		Transport: &http.Transport{
-			DialContext: func(ctx context.Context, network, addr string) (net.Conn, error) {
-				return net.Dial("unix", s.localSock)
-			},
-		},
+		Transport:    s.localTransport(), // 共享, 空闲连接会超时自杀
 		ErrorHandler: jsonErrorHandler,
 	}
 	proxy.ServeHTTP(c.Writer, c.Request)
@@ -246,11 +305,7 @@ func (s *Server) routeRemote(c *gin.Context) {
 			pr.Out.URL.RawPath = ""
 			pr.SetXForwarded()
 		},
-		Transport: &http.Transport{
-			DialContext: func(ctx context.Context, network, addr string) (net.Conn, error) {
-				return sess.Open(transport.StreamHTTP)
-			},
-		},
+		Transport:    s.machineTransport(id, sess), // 按机器共享, 空闲 20s 自杀
 		ErrorHandler: jsonErrorHandler,
 	}
 	proxy.ServeHTTP(c.Writer, c.Request)
