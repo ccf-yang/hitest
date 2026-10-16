@@ -39,12 +39,20 @@ onMounted(() => {
       emit('closed')
       return
     }
-    // [1B kind][payload]
-    if (ev.data.length > 1 && ev.data[0] === 0) {
-      term.write(new Uint8Array(ev.data, 1))
-    } else if (ev.data.length > 0 && ev.data[0] === 2) {
+    // 帧: [1B kind][payload]。
+    // 注意 ArrayBuffer 上没有 length（那是 TypedArray 的），只有 byteLength。
+    // 之前写成 ev.data.length 恒为 undefined，两个分支都进不去，
+    // 于是 PTY 的输出永远不写屏 —— 表现就是「敲命令回车只有光标闪，什么都不返回」。
+    const u8 = new Uint8Array(ev.data)
+    if (u8.byteLength === 0) return
+    if (u8[0] === 0) {
+      if (u8.byteLength > 1) term.write(u8.subarray(1))
+    } else if (u8[0] === 2) {
       term.write('\r\n\x1b[33m[会话已结束]\x1b[0m')
       emit('closed')
+    } else {
+      // 兜底：万一服务端发来的是不带 kind 的裸输出，原样写屏，别把数据丢了
+      term.write(u8)
     }
   }
   ws.onclose = () => {

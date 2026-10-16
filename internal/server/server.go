@@ -326,7 +326,12 @@ func (s *Server) terminalBridge(c *gin.Context,
 			for {
 				n, err := p.Read(buf)
 				if n > 0 {
-					if werr := ws.WriteMessage(websocket.BinaryMessage, buf[:n]); werr != nil {
+					// 与远程模式同一套帧: [1B kind][payload]。
+					// 这里以前直接发裸字节, 前端按帧剥首字节就会吞掉一个字符。
+					out := make([]byte, 0, n+1)
+					out = append(out, terminal.FrameData)
+					out = append(out, buf[:n]...)
+					if werr := ws.WriteMessage(websocket.BinaryMessage, out); werr != nil {
 						return
 					}
 				}
