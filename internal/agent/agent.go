@@ -168,6 +168,14 @@ func serveConn(ctx context.Context, opts Options) error {
 	}
 	defer sess.Close()
 
+	// sess.Accept 是纯阻塞调用, 不看 ctx。没有这个 watcher 的话, systemd 发的
+	// SIGTERM 只取消 ctx 却唤不醒 Accept —— 进程要等 TimeoutStopSec 到点被 SIGKILL。
+	// 关会话让 Accept 立即返回错误, 外层 serveConn 带 ctx.Err() 检查正常退出。
+	go func() {
+		<-ctx.Done()
+		sess.Close()
+	}()
+
 	for {
 		typ, conn, err := sess.Accept()
 		if err != nil {
@@ -197,4 +205,8 @@ func bridgeHTTP(c net.Conn, sockPath string) {
 	go func() { io.Copy(up, c); done <- struct{}{} }()
 	go func() { io.Copy(c, up); done <- struct{}{} }()
 	<-done
+	// 一个方向结束（另一端 EOF / 客户端断开）后, 另一个方向的 Copy 还会堵在那里。
+	// 两边都关掉让它带着错误退出, 否则每断一次请求就永久滞留一个 io.Copy goroutine。
+	c.Close()
+	up.Close()
 }
