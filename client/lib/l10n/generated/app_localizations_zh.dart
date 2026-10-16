@@ -615,7 +615,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get serverFormApiKey => 'API 密钥';
 
   @override
-  String get serverFormApiKeyHint => '请输入 API 密钥';
+  String get serverFormApiKeyHint => '服务器未开启鉴权时可留空';
 
   @override
   String get serverFormSaveConnect => '保存并继续';

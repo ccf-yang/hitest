@@ -50,7 +50,7 @@
   "serverFormUrl": "服务器地址",
   "serverFormUrlHint": "例如：https://panel.example.com",
   "serverFormApiKey": "API 密钥",
-  "serverFormApiKeyHint": "请输入 API 密钥",
+  "serverFormApiKeyHint": "服务器未开启鉴权时可留空",
   "serverFormSaveConnect": "保存并继续",
   "serverFormTest": "测试连接",
   "serverFormRequired": "该字段不能为空",

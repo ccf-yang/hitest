@@ -39,8 +39,7 @@ class _ServerFormPageState extends State<ServerFormPage> {
   }
 
   Future<void> _testConnection() async {
-    if (_urlController.text.trim().isEmpty ||
-        _apiKeyController.text.trim().isEmpty) {
+    if (_urlController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(context.l10n.serverFormRequired)),
       );
@@ -185,9 +184,6 @@ class _ServerFormPageState extends State<ServerFormPage> {
                   labelText: l10n.serverFormApiKey,
                   hintText: l10n.serverFormApiKeyHint,
                 ),
-                validator: (value) => (value == null || value.trim().isEmpty)
-                    ? l10n.serverFormRequired
-                    : null,
               ),
               const SizedBox(height: AppDesignTokens.spacingLg),
               TextFormField(

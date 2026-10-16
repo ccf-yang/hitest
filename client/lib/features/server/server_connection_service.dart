@@ -1,7 +1,9 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
-import 'package:crypto/crypto.dart';
-import 'dart:convert';
+
+import '../../core/config/api_constants.dart';
+import '../../core/network/hitest_auth_headers.dart';
+import '../../core/network/machine_path.dart';
 
 class ServerConnectionResult {
   const ServerConnectionResult({
@@ -49,19 +51,18 @@ class ServerConnectionService {
         }
       }
 
-      final timestamp =
-          (DateTime.now().millisecondsSinceEpoch ~/ 1000).toString();
-      final authString = 'hitest$apiKey$timestamp';
-      final bytes = utf8.encode(authString);
-      final digest = md5.convert(bytes);
-      final token = digest.toString();
+      // 这里的 Dio 是独立于 DioClient 的（连接测试要在保存配置前跑）,
+      // 所以机器前缀和信封头得自己补一遍, 否则会打到 hub 上不存在的无前缀路由。
+      final headers = <String, String>{
+        'X-Hitest-Envelope': '1',
+      };
+      if (apiKey.isNotEmpty) headers.addAll(OnePanelAuthHeaders.build(apiKey));
 
       final response = await dio.get(
-        '/api/v1/monitor/base/os',
-        options: Options(headers: {
-          'hitest-Token': token,
-          'hitest-Timestamp': timestamp,
-        }),
+        MachinePath.add('/api/v1/monitor/base/os'),
+        options: Options(
+          headers: headers,
+        ),
       );
 
       stopwatch.stop();
