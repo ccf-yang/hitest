@@ -103,7 +103,7 @@ class ServerListPageMobile extends StatelessWidget {
                           padding: const EdgeInsets.only(bottom: 12),
                           child: ServerCard(
                             data: item,
-                            onTap: () => viewModel.openDetail(context, item),
+                            onTap: () => viewModel.selectAsCurrent(context, item),
                             onDelete: () => viewModel.deleteServer(context, item),
                           ),
                         );

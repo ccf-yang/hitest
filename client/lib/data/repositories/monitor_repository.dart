@@ -304,16 +304,20 @@ MonitorTimeSeries parseTimeSeriesResponse(
       continue;
     }
 
-    // 优先使用 value 中的 createdAt 字段，其次使用 date 数组
-    DateTime time;
+    // 后端存的是盒子本地挂钟时间（带 +08:00 偏移）。直接取字符串里的数字构造
+    // 本地 DateTime，不做时区换算：手机与盒子同为东八区时正好对齐。
+    // 若走 DateTime.parse（会转成带 UTC 标志的对象），再叠加 .toLocal() 就二次偏移 8 小时。
     final createdAt = valueMap['createdAt'] as String?;
-    if (createdAt != null) {
-      time = DateTime.tryParse(createdAt) ?? now;
-    } else if (dates != null && i < dates.length) {
-      time = DateTime.tryParse(dates[i]) ?? now;
+
+    // 优先用 date[] 数组（与 value 同序），其次 valueMap 里的 createdAt。
+    String? rawTime;
+    if (dates != null && i < dates.length && dates[i].isNotEmpty) {
+      rawTime = dates[i];
     } else {
-      time = now;
+      rawTime = createdAt;
     }
+
+    final time = _parseWallClock(rawTime) ?? now;
 
     dataPoints.add(MonitorDataPoint(time: time, value: value));
 
@@ -329,6 +333,24 @@ MonitorTimeSeries parseTimeSeriesResponse(
     min: min,
     max: max,
     avg: count > 0 ? sum / count : null,
+  );
+}
+
+/// 把 ISO 时间戳按“墙上时间”解析为本地 DateTime（丢弃时区偏移、不做换算）。
+/// 形如 2026-10-17T01:28:30.123456789+08:00 → 本地 01:28:30。
+DateTime? _parseWallClock(String? raw) {
+  if (raw == null || raw.isEmpty) return null;
+  final m = RegExp(
+    r'^(\d{4})-(\d{2})-(\d{2})[T ](\d{2}):(\d{2}):(\d{2})',
+  ).firstMatch(raw);
+  if (m == null) return null;
+  return DateTime(
+    int.parse(m.group(1)!),
+    int.parse(m.group(2)!),
+    int.parse(m.group(3)!),
+    int.parse(m.group(4)!),
+    int.parse(m.group(5)!),
+    int.parse(m.group(6)!),
   );
 }
 

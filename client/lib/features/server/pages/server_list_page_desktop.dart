@@ -101,7 +101,7 @@ class ServerListPageDesktop extends StatelessWidget {
                           final item = data[index];
                           return ServerCard(
                             data: item,
-                            onTap: () => viewModel.openDetail(context, item),
+                            onTap: () => viewModel.selectAsCurrent(context, item),
                             onDelete: () => viewModel.deleteServer(context, item),
                           );
                         },

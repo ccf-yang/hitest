@@ -94,13 +94,14 @@ class ServerCard extends StatelessWidget {
                             : l10n.serverMetricsUnavailable,
                         style: TextStyle(color: scheme.onSurfaceVariant),
                       ),
-                      Text(
-                        l10n.serverOpenDetail,
-                        style: TextStyle(
-                          color: scheme.primary,
-                          fontWeight: FontWeight.w600,
+                      if (!data.isCurrent)
+                        Text(
+                          l10n.serverTapToSelect,
+                          style: TextStyle(
+                            color: scheme.primary,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
-                      ),
                     ],
                   ),
                 ],

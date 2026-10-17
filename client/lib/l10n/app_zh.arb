@@ -40,7 +40,15 @@
   "serverLoadLabel": "负载",
   "serverDiskLabel": "磁盘",
   "serverMetricsUnavailable": "监控数据暂不可用",
-  "serverOpenDetail": "查看详情",
+  "serverTapToSelect": "点按设为当前",
+  "serverSwitched": "已切换至 {name}",
+  "@serverSwitched": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "serverDetailTitle": "服务器详情",
   "serverModuleMonitoring": "监控",
   "serverActionRefresh": "刷新",

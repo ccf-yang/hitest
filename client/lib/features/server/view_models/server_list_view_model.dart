@@ -3,7 +3,6 @@ import 'package:provider/provider.dart';
 import 'package:hitest/core/i18n/l10n_x.dart';
 import 'package:hitest/core/presentation/safe_change_notifier.dart';
 import 'package:hitest/core/utils/platform_utils.dart';
-import 'package:hitest/features/server/server_detail_page.dart';
 import 'package:hitest/features/server/server_form_page.dart';
 import 'package:hitest/features/server/server_models.dart';
 import 'package:hitest/features/server/server_provider.dart';
@@ -104,22 +103,17 @@ class ServerListViewModel extends ChangeNotifier with SafeChangeNotifier {
     }
   }
 
-  Future<void> openDetail(
+  /// 卡片点击 = 把这台设为「当前机器」，之后所有 tab（监控/文件/终端）都作用于它。
+  /// 不再跳详情页——功能入口都在底部 tab，详情页是多余的壳。
+  Future<void> selectAsCurrent(
       BuildContext context, ServerCardViewModel item) async {
-    if (!item.isCurrent) {
-      await context
-          .read<CurrentServerController>()
-          .selectServer(item.config.id);
-      if (context.mounted) {
-        await _serverProvider.load();
-      }
-    }
-    if (!context.mounted) return;
-
-    await Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (_) => ServerDetailPage(server: item),
-      ),
+    if (item.isCurrent) return;
+    final l10n = context.l10n;
+    final messenger = ScaffoldMessenger.of(context);
+    await context.read<CurrentServerController>().selectServer(item.config.id);
+    await _serverProvider.load();
+    messenger.showSnackBar(
+      SnackBar(content: Text(l10n.serverSwitched(item.config.name))),
     );
   }
 

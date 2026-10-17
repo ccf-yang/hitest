@@ -2,10 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:hitest/core/config/api_config.dart';
 import 'package:hitest/core/i18n/l10n_x.dart';
 import 'package:hitest/features/monitoring/monitoring_page.dart';
-import 'package:hitest/features/server/server_detail_page.dart';
 import 'package:hitest/features/server/server_form_page.dart';
 import 'package:hitest/features/server/server_list_page.dart';
-import 'package:hitest/features/server/server_models.dart';
 import 'package:hitest/features/shell/models/client_module.dart';
 import 'package:hitest/features/shell/shell_navigation.dart';
 import 'package:hitest/ui/routing/ui_route_host.dart';
@@ -48,12 +46,7 @@ class AppRouter {
       case AppRoutes.serverConfig:
         return MaterialPageRoute(builder: (_) => const ServerFormPage());
       case AppRoutes.serverDetail:
-        final arg = settings.arguments;
-        if (arg is ServerCardViewModel) {
-          return MaterialPageRoute(
-              builder: (_) => ServerDetailPage(server: arg));
-        }
-        return MaterialPageRoute(builder: (_) => const NotFoundPage());
+        return MaterialPageRoute(builder: (_) => const ServerListPage());
       case AppRoutes.monitoring:
         return MaterialPageRoute(builder: (_) => const MonitoringPage());
       case AppRoutes.settings:
@@ -109,13 +102,7 @@ class AppRouter {
       ),
       AppRoutes.serverDetail: _shellAwareModuleEntry(
         routeName: AppRoutes.serverDetail,
-        defaultBuilder: (_, settings) {
-          final arg = settings.arguments;
-          if (arg is ServerCardViewModel) {
-            return ServerDetailPage(server: arg);
-          }
-          return const NotFoundPage();
-        },
+        defaultBuilder: (_, __) => const ServerListPage(),
       ),
       AppRoutes.settings: _shellAwareModuleEntry(
         routeName: AppRoutes.settings,

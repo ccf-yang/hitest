@@ -3,7 +3,6 @@ import 'package:hitest/core/i18n/l10n_x.dart';
 import 'package:hitest/core/theme/app_design_tokens.dart';
 import 'package:hitest/shared/widgets/operations/module_empty_state_widget.dart';
 import 'package:hitest/shared/widgets/operations/module_error_state_widget.dart';
-import 'package:hitest/features/quick/quick_commands_page.dart';
 import 'package:hitest/features/settings/monitor_settings_page.dart';
 import 'package:hitest/shared/widgets/app_card.dart';
 import 'package:provider/provider.dart';
@@ -52,16 +51,6 @@ class _MonitoringPageState extends State<MonitoringPage> {
               context,
               MaterialPageRoute(
                 builder: (_) => const MonitorSettingsPage(),
-              ),
-            ),
-          ),
-          IconButton(
-            icon: const Icon(Icons.terminal_outlined),
-            tooltip: l10n.quickCommandsTitle,
-            onPressed: () => Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) => const QuickCommandsPage(),
               ),
             ),
           ),

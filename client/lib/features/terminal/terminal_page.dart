@@ -10,7 +10,9 @@ import 'package:hitest/core/network/terminal_client.dart';
 import 'package:hitest/core/theme/app_design_tokens.dart';
 
 /// 终端页：连目标机器的 PTY，自己渲染 VT/ANSI。
-/// 屏幕是固定网格（服务端 pty 就地重绘），所以不做历史滚动。
+///
+/// 渲染 = scrollback（被顶出屏幕的历史）+ 当前固定网格。整块放进纵向滚动视图，
+/// 新输出自动贴到底部，用户往上滑即可翻历史；列宽按屏幕宽度铺满，不再横向滚动。
 class TerminalPage extends StatefulWidget {
   const TerminalPage({super.key});
 
@@ -21,16 +23,23 @@ class TerminalPage extends StatefulWidget {
 class _TerminalPageState extends State<TerminalPage> {
   final _client = TerminalClient();
   final _inputController = TextEditingController();
-  final _screenKey = GlobalKey();
+  final _scrollController = ScrollController();
 
   TermScreen? _screen;
   TerminalStatus _status = TerminalStatus.idle;
   String? _message;
   StreamSubscription<TermFrameEvent>? _frameSub;
   StreamSubscription<TerminalStatus>? _statusSub;
+
   double _cellW = 7;
   double _cellH = 15;
   bool _cellMeasured = false;
+  int _cols = 80;
+  int _rows = 24;
+  bool _stickToBottom = true;
+
+  // 最多渲染的历史行数，避免长会话 build 成本失控。
+  static const int _maxHistoryRows = 800;
 
   static const TextStyle _mono = TextStyle(
     fontFamily: 'Menlo',
@@ -48,6 +57,7 @@ class _TerminalPageState extends State<TerminalPage> {
     _statusSub = _client.status.listen((s) {
       if (mounted) setState(() => _status = s);
     });
+    _scrollController.addListener(_onScroll);
     WidgetsBinding.instance.addPostFrameCallback((_) => _connect());
   }
 
@@ -55,6 +65,7 @@ class _TerminalPageState extends State<TerminalPage> {
   void dispose() {
     _frameSub?.cancel();
     _statusSub?.cancel();
+    _scrollController.dispose();
     _client.dispose();
     _inputController.dispose();
     super.dispose();
@@ -64,19 +75,17 @@ class _TerminalPageState extends State<TerminalPage> {
 
   Future<void> _connect() async {
     final config = await ApiConfigManager.getCurrentConfig();
+    if (!mounted) return;
     if (config == null) {
-      if (mounted) {
-        setState(() => _message = context.l10n.noServerSelectedDescription);
-      }
+      setState(() => _message = context.l10n.noServerSelectedDescription);
       return;
     }
     _measureCell();
-    final grid = _measureGrid();
     setState(() {
-      _screen = TermScreen(cols: grid.cols, rows: grid.rows);
+      _screen = TermScreen(cols: _cols, rows: _rows);
       _message = null;
     });
-    await _client.open(config: config, cols: grid.cols, rows: grid.rows);
+    await _client.open(config: config, cols: _cols, rows: _rows);
   }
 
   void _measureCell() {
@@ -92,25 +101,25 @@ class _TerminalPageState extends State<TerminalPage> {
     }
   }
 
-  ({int cols, int rows}) _measureGrid() {
-    final box = _screenKey.currentContext?.findRenderObject();
-    if (box is! RenderBox || box.size.width <= 0 || box.size.height <= 0) {
-      return (cols: 80, rows: 24);
+  ({int cols, int rows}) _gridFor(Size size) {
+    if (size.width <= 0 || size.height <= 0 || !_cellMeasured) {
+      return (cols: _cols, rows: _rows);
     }
-    final w = (box.size.width / _cellW).floor();
-    final h = (box.size.height / _cellH).floor();
-    return (cols: w.clamp(20, 400), rows: h.clamp(6, 200));
+    final cols = (size.width / _cellW).floor().clamp(20, 400);
+    final rows = (size.height / _cellH).floor().clamp(6, 200);
+    return (cols: cols, rows: rows);
   }
 
-  void _remeasure() {
+  void _applyGrid(Size size) {
     final screen = _screen;
     if (screen == null) return;
-    final grid = _measureGrid();
-    if (grid.cols != screen.cols || grid.rows != screen.rows) {
-      screen.resize(grid.cols, grid.rows);
-      if (_connected) _client.resize(grid.cols, grid.rows);
-      setState(() {});
-    }
+    final grid = _gridFor(size);
+    if (grid.cols == _cols && grid.rows == _rows) return;
+    _cols = grid.cols;
+    _rows = grid.rows;
+    screen.resize(_cols, _rows);
+    if (_connected) _client.resize(_cols, _rows);
+    setState(() {});
   }
 
   void _onFrame(TermFrameEvent event) {
@@ -119,7 +128,10 @@ class _TerminalPageState extends State<TerminalPage> {
         final screen = _screen;
         if (screen == null) return;
         screen.feed(Uint8List.fromList(event.bytes!));
-        if (mounted) setState(() {});
+        if (mounted) {
+          setState(() {});
+          if (_stickToBottom) _scheduleScrollToBottom();
+        }
       case TermFrameEventKind.close:
         if (mounted) setState(() => _message = context.l10n.terminalClosed);
       case TermFrameEventKind.error:
@@ -131,11 +143,25 @@ class _TerminalPageState extends State<TerminalPage> {
     }
   }
 
+  void _onScroll() {
+    if (!_scrollController.hasClients) return;
+    final pos = _scrollController.position;
+    _stickToBottom = pos.pixels >= pos.maxScrollExtent - 24;
+  }
+
+  void _scheduleScrollToBottom() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_scrollController.hasClients) {
+        _scrollController.jumpTo(_scrollController.position.maxScrollExtent);
+      }
+    });
+  }
+
+  // 远程 pty 处于 echo 模式，输入的字符会由服务端回显，这里不再本地回显，
+  // 否则每个字符会画两遍。
   void _sendText(String text) {
     if (text.isEmpty || !_connected) return;
-    _screen?.localEcho(text);
     _client.write(text);
-    setState(() {});
   }
 
   void _submitLine() {
@@ -143,6 +169,7 @@ class _TerminalPageState extends State<TerminalPage> {
     final text = _inputController.text;
     _inputController.clear();
     _sendText('$text\r');
+    _stickToBottom = true;
   }
 
   String _arrow(String letter) {
@@ -164,17 +191,17 @@ class _TerminalPageState extends State<TerminalPage> {
               '${l10n.terminalTitle} · ${_statusTitle(l10n)}',
               style: const TextStyle(fontSize: 15),
             ),
-            if (_screen != null)
-              Text(
-                '${_screen!.cols}×${_screen!.rows}',
-                style: const TextStyle(fontSize: 11),
-              ),
+            Text(
+              '$_cols×$_rows',
+              style: const TextStyle(fontSize: 11),
+            ),
           ],
         ),
         actions: [
           IconButton(
             icon: Icon(_connected ? Icons.link_off : Icons.link),
-            tooltip: _connected ? l10n.terminalDisconnect : l10n.terminalReconnect,
+            tooltip:
+                _connected ? l10n.terminalDisconnect : l10n.terminalReconnect,
             onPressed: () async {
               if (_connected) {
                 await _client.close();
@@ -204,21 +231,21 @@ class _TerminalPageState extends State<TerminalPage> {
               ),
             ),
           Expanded(
-            child: GestureDetector(
-              behavior: HitTestBehavior.opaque,
-              onTap: () => FocusScope.of(context).unfocus(),
-              child: Container(
-                key: _screenKey,
-                color: _screenBg,
-                padding: const EdgeInsets.all(4),
-                child: LayoutBuilder(
-                  builder: (context, constraints) {
-                    WidgetsBinding.instance
-                        .addPostFrameCallback((_) => _remeasure());
-                    return _buildScreen();
-                  },
-                ),
-              ),
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                WidgetsBinding.instance.addPostFrameCallback(
+                  (_) => _applyGrid(constraints.biggest),
+                );
+                return GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: () => FocusScope.of(context).unfocus(),
+                  child: Container(
+                    color: _screenBg,
+                    padding: const EdgeInsets.all(4),
+                    child: _buildScreen(),
+                  ),
+                );
+              },
             ),
           ),
           _buildInputBar(context),
@@ -235,31 +262,36 @@ class _TerminalPageState extends State<TerminalPage> {
         child: CircularProgressIndicator(color: Colors.white),
       );
     }
+    final history = screen.history;
+    final histStart = history.length > _maxHistoryRows
+        ? history.length - _maxHistoryRows
+        : 0;
+    final rows = <List<TermCell>>[
+      ...history.sublist(histStart),
+      ...screen.lines,
+    ];
     return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            for (var r = 0; r < screen.rows; r++) _buildRow(screen, r),
-          ],
-        ),
+      controller: _scrollController,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          for (final cells in rows) _buildRow(cells),
+        ],
       ),
     );
   }
 
-  Widget _buildRow(TermScreen screen, int row) {
+  Widget _buildRow(List<TermCell> cells) {
     return SizedBox(
       height: _cellH,
       child: Text.rich(
-        TextSpan(children: _buildRowSpans(screen, row)),
+        TextSpan(children: _buildRowSpans(cells)),
         style: _mono.copyWith(color: _defaultFg, height: 1.0),
       ),
     );
   }
 
-  List<InlineSpan> _buildRowSpans(TermScreen screen, int row) {
-    final cells = screen.lines[row];
+  List<InlineSpan> _buildRowSpans(List<TermCell> cells) {
     final spans = <InlineSpan>[];
     final sb = StringBuffer();
     int? fgKey;
