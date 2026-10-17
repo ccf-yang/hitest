@@ -140,6 +140,18 @@ class _MonitoringPageState extends State<MonitoringPage> {
                   context.read<MonitoringProvider>().selectNetworkOption(value),
             ),
           ),
+          const SizedBox(height: AppDesignTokens.spacingSm),
+          _TopProcessesCard(
+            title: l10n.monitorTopCpu,
+            processes: data.topCpu,
+            metric: _TopMetric.cpu,
+          ),
+          const SizedBox(height: AppDesignTokens.spacingSm),
+          _TopProcessesCard(
+            title: l10n.monitorTopMem,
+            processes: data.topMem,
+            metric: _TopMetric.memory,
+          ),
         ],
       ),
     );
@@ -530,4 +542,146 @@ class _MetricSelector extends StatelessWidget {
       ),
     );
   }
+}
+
+enum _TopMetric { cpu, memory }
+
+/// Top 进程榜（CPU / 内存）。数据来自后端 base 最新采样的 topCPUItems/topMemItems，
+/// 已在解析层按占用降序取前 10，这里只做展示。
+class _TopProcessesCard extends StatelessWidget {
+  final String title;
+  final List<MonitorProcess> processes;
+  final _TopMetric metric;
+
+  const _TopProcessesCard({
+    required this.title,
+    required this.processes,
+    required this.metric,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    return Card(
+      clipBehavior: Clip.antiAlias,
+      elevation: 0,
+      color: colorScheme.surfaceContainerLow,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppDesignTokens.radiusLg),
+        side: BorderSide(color: colorScheme.outlineVariant),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(AppDesignTokens.spacingMd),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              title,
+              style: theme.textTheme.titleMedium
+                  ?.copyWith(fontWeight: FontWeight.w600),
+            ),
+            const SizedBox(height: AppDesignTokens.spacingSm),
+            if (processes.isEmpty)
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                child: Text(
+                  l10n.commonEmpty,
+                  style: theme.textTheme.bodyMedium
+                      ?.copyWith(color: colorScheme.onSurfaceVariant),
+                ),
+              )
+            else
+              for (var i = 0; i < processes.length; i++)
+                _buildRow(context, processes[i], i),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildRow(BuildContext context, MonitorProcess process, int index) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    final primaryValue = metric == _TopMetric.cpu
+        ? '${process.percent.toStringAsFixed(1)}%'
+        : _formatBytes(process.memory);
+    final secondaryValue =
+        metric == _TopMetric.cpu ? null : '${process.percent.toStringAsFixed(1)}%';
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: Row(
+        children: [
+          SizedBox(
+            width: 22,
+            child: Text(
+              '${index + 1}',
+              style: theme.textTheme.labelMedium
+                  ?.copyWith(color: colorScheme.onSurfaceVariant),
+            ),
+          ),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  process.name.isNotEmpty ? process.name : process.cmd,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.bodyMedium
+                      ?.copyWith(fontWeight: FontWeight.w600),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  'PID ${process.pid}'
+                  '${process.user.isNotEmpty ? ' · ${process.user}' : ''}',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.labelSmall
+                      ?.copyWith(color: colorScheme.onSurfaceVariant),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: AppDesignTokens.spacingSm),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Text(
+                primaryValue,
+                style: theme.textTheme.titleSmall
+                    ?.copyWith(fontWeight: FontWeight.w700),
+              ),
+              if (secondaryValue != null) ...[
+                const SizedBox(height: 2),
+                Text(
+                  secondaryValue,
+                  style: theme.textTheme.labelSmall
+                      ?.copyWith(color: colorScheme.onSurfaceVariant),
+                ),
+              ],
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// 字节数 → 人类可读（B/KB/MB/GB/TB）。
+String _formatBytes(int bytes) {
+  if (bytes <= 0) return '0 B';
+  const units = ['B', 'KB', 'MB', 'GB', 'TB'];
+  double value = bytes.toDouble();
+  int unit = 0;
+  while (value >= 1024 && unit < units.length - 1) {
+    value /= 1024;
+    unit++;
+  }
+  final decimals = value >= 100 || unit == 0 ? 0 : 1;
+  return '${value.toStringAsFixed(decimals)} ${units[unit]}';
 }

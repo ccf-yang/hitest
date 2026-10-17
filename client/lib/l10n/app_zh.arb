@@ -18,6 +18,8 @@
   "monitorMetricMin": "最小",
   "monitorMetricAvg": "平均",
   "monitorMetricMax": "最大",
+  "monitorTopCpu": "Top 10 CPU 进程",
+  "monitorTopMem": "Top 10 内存进程",
   "navServer": "服务器",
   "noServerSelectedTitle": "{module} 需要先选择服务器",
   "@noServerSelectedTitle": {

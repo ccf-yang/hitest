@@ -21,6 +21,8 @@ class MonitoringData {
   final MonitorTimeSeries? loadTimeSeries;
   final MonitorTimeSeries? ioTimeSeries;
   final MonitorTimeSeries? networkTimeSeries;
+  final List<MonitorProcess> topCpu;
+  final List<MonitorProcess> topMem;
   final MonitorSetting? settings;
   final List<String> ioOptions;
   final List<String> networkOptions;
@@ -38,6 +40,8 @@ class MonitoringData {
     this.loadTimeSeries,
     this.ioTimeSeries,
     this.networkTimeSeries,
+    this.topCpu = const [],
+    this.topMem = const [],
     this.settings,
     this.ioOptions = const ['all'],
     this.networkOptions = const ['all'],
@@ -56,6 +60,8 @@ class MonitoringData {
     MonitorTimeSeries? loadTimeSeries,
     MonitorTimeSeries? ioTimeSeries,
     MonitorTimeSeries? networkTimeSeries,
+    List<MonitorProcess>? topCpu,
+    List<MonitorProcess>? topMem,
     MonitorSetting? settings,
     List<String>? ioOptions,
     List<String>? networkOptions,
@@ -73,6 +79,8 @@ class MonitoringData {
       loadTimeSeries: loadTimeSeries ?? this.loadTimeSeries,
       ioTimeSeries: ioTimeSeries ?? this.ioTimeSeries,
       networkTimeSeries: networkTimeSeries ?? this.networkTimeSeries,
+      topCpu: topCpu ?? this.topCpu,
+      topMem: topMem ?? this.topMem,
       settings: settings ?? this.settings,
       ioOptions: ioOptions ?? this.ioOptions,
       networkOptions: networkOptions ?? this.networkOptions,
@@ -266,6 +274,8 @@ class MonitoringProvider extends ChangeNotifier with SafeChangeNotifier {
         loadTimeSeries: result.timeSeries['load'],
         ioTimeSeries: result.timeSeries['io'],
         networkTimeSeries: result.timeSeries['network'],
+        topCpu: result.topCpu,
+        topMem: result.topMem,
         lastUpdated: DateTime.now(),
       );
       notifyListeners();

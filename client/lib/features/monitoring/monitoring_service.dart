@@ -243,6 +243,8 @@ class MonitoringService extends BaseComponent {
       return MonitorDataPackage(
         current: currentMetrics ?? package.current,
         timeSeries: package.timeSeries,
+        topCpu: package.topCpu,
+        topMem: package.topMem,
       );
     });
   }

@@ -107,14 +107,48 @@ class MonitorTimeSeries {
       MonitorTimeSeries(name: name, data: []);
 }
 
+/// 进程占用条目（Top CPU / Top 内存）
+class MonitorProcess {
+  final String name;
+  final int pid;
+  final String user;
+  final String cmd;
+  final double percent;
+  final int memory;
+
+  const MonitorProcess({
+    required this.name,
+    required this.pid,
+    required this.user,
+    required this.cmd,
+    required this.percent,
+    required this.memory,
+  });
+
+  factory MonitorProcess.fromJson(Map<String, dynamic> json) {
+    return MonitorProcess(
+      name: json['name'] as String? ?? '',
+      pid: (json['pid'] as num?)?.toInt() ?? 0,
+      user: json['user'] as String? ?? '',
+      cmd: json['cmd'] as String? ?? '',
+      percent: (json['percent'] as num?)?.toDouble() ?? 0,
+      memory: (json['memory'] as num?)?.toInt() ?? 0,
+    );
+  }
+}
+
 /// 监控数据包
 class MonitorDataPackage {
   final MonitorMetricsSnapshot current;
   final Map<String, MonitorTimeSeries> timeSeries;
+  final List<MonitorProcess> topCpu;
+  final List<MonitorProcess> topMem;
 
   const MonitorDataPackage({
     required this.current,
     required this.timeSeries,
+    this.topCpu = const [],
+    this.topMem = const [],
   });
 }
 
@@ -143,7 +177,46 @@ MonitorDataPackage parseMonitorDataPackage(MonitorDataParseArgs args) {
     'network': parseTimeSeriesResponse(data, 'network', 'networkThroughput'),
   };
 
-  return MonitorDataPackage(current: current, timeSeries: timeSeries);
+  return MonitorDataPackage(
+    current: current,
+    timeSeries: timeSeries,
+    topCpu: _parseTopProcesses(data, 'topCPUItems'),
+    topMem: _parseTopProcesses(data, 'topMemItems'),
+  );
+}
+
+/// 解析 base 最新一条采样里的进程 Top 榜（按 percent 降序取前 10）。
+List<MonitorProcess> _parseTopProcesses(dynamic data, String key) {
+  if (data == null || data is! Map) return const [];
+
+  final dataList = (data as Map<String, dynamic>)['data'] as List?;
+  if (dataList == null) return const [];
+
+  Map<String, dynamic>? baseItem;
+  for (final item in dataList) {
+    if (item is Map<String, dynamic> && item['param'] == 'base') {
+      baseItem = item;
+      break;
+    }
+  }
+
+  final values = baseItem?['value'] as List?;
+  if (values == null || values.isEmpty) return const [];
+
+  final last = values.last;
+  if (last is! Map<String, dynamic>) return const [];
+
+  final raw = last[key] as List?;
+  if (raw == null || raw.isEmpty) return const [];
+
+  final list = <MonitorProcess>[];
+  for (final entry in raw) {
+    if (entry is Map<String, dynamic>) {
+      list.add(MonitorProcess.fromJson(entry));
+    }
+  }
+  list.sort((a, b) => b.percent.compareTo(a.percent));
+  return list.take(10).toList();
 }
 
 /// 顶级解析函数 - 解析监控指标响应
