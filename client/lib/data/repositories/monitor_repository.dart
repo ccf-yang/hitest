@@ -304,9 +304,8 @@ MonitorTimeSeries parseTimeSeriesResponse(
       continue;
     }
 
-    // 后端存的是盒子本地挂钟时间（带 +08:00 偏移）。直接取字符串里的数字构造
-    // 本地 DateTime，不做时区换算：手机与盒子同为东八区时正好对齐。
-    // 若走 DateTime.parse（会转成带 UTC 标志的对象），再叠加 .toLocal() 就二次偏移 8 小时。
+    // 后端发的时间戳数字部分是 UTC（盒子时钟即 UTC），却硬贴了 +08:00 偏移标签，
+    // 自相矛盾。这里取数字当作 UTC 构造真实瞬间，交给设备本地化（东八区即 +8）。
     final createdAt = valueMap['createdAt'] as String?;
 
     // 优先用 date[] 数组（与 value 同序），其次 valueMap 里的 createdAt。
@@ -317,7 +316,7 @@ MonitorTimeSeries parseTimeSeriesResponse(
       rawTime = createdAt;
     }
 
-    final time = _parseWallClock(rawTime) ?? now;
+    final time = _parseTimestampAsUtc(rawTime) ?? now;
 
     dataPoints.add(MonitorDataPoint(time: time, value: value));
 
@@ -336,15 +335,17 @@ MonitorTimeSeries parseTimeSeriesResponse(
   );
 }
 
-/// 把 ISO 时间戳按“墙上时间”解析为本地 DateTime（丢弃时区偏移、不做换算）。
-/// 形如 2026-10-17T01:28:30.123456789+08:00 → 本地 01:28:30。
-DateTime? _parseWallClock(String? raw) {
+/// 取 ISO 时间戳的数字部分当作 UTC 瞬间（忽略其自带的偏移标签）。
+/// 形如 2026-10-17T03:13:54+08:00 → DateTime.utc(2026-10-17 03:13:54)。
+/// 盒子写入的挂钟数字实为 UTC，+08:00 标签是错的，故丢弃标签、按 UTC 还原真实时刻，
+/// 之后 .toLocal() 才能在东八区设备上正确显示为本地时间。
+DateTime? _parseTimestampAsUtc(String? raw) {
   if (raw == null || raw.isEmpty) return null;
   final m = RegExp(
     r'^(\d{4})-(\d{2})-(\d{2})[T ](\d{2}):(\d{2}):(\d{2})',
   ).firstMatch(raw);
   if (m == null) return null;
-  return DateTime(
+  return DateTime.utc(
     int.parse(m.group(1)!),
     int.parse(m.group(2)!),
     int.parse(m.group(3)!),

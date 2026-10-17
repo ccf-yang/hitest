@@ -200,7 +200,8 @@ class _MonitorChartState extends State<MonitorChart>
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Text(
-                        DateFormat('MM-dd HH:mm').format(_selectedPoint!.time),
+                        DateFormat('MM-dd HH:mm')
+                            .format(_selectedPoint!.time.toLocal()),
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
                               color: colorScheme.onSurfaceVariant,
                             ),
